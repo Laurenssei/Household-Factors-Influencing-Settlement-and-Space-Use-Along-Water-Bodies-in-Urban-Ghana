@@ -1,0 +1,2975 @@
+
+
+---
+title: "Household Factors Influencing the Use of Space Along Water Bodies"
+author:
+  - name: "Laurens"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+abstract: |
+  This report presents
+keywords: [ ]
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    number_sections: true
+    code_folding: hide
+    fig_caption: true
+    df_print: paged
+    highlight: tango
+    css: styles/custom.css    # point to your CSS file
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    fig_caption: true
+  word_document:
+    toc: true
+    toc_depth: 3
+    fig_caption: true
+params:
+  show_code: 
+    label: "Show code chunks"
+    value: false
+    input: checkbox
+  analysis_date: !r Sys.Date()
+  data_path: "data/"
+  output_path: "outputs/"
+  seed: 42
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+/* =========================================
+   GLOBAL TYPOGRAPHY & LAYOUT
+========================================= */
+body {
+  font-family: "Lato", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.75;
+  color: #2b2b2b;
+  background-color: #fafafa;
+  margin: 40px auto;
+  max-width: 950px;
+  font-size: 1.06em;
+}
+p { margin-bottom: 1em; text-align: justify; color: #333; }
+a { color: #0056b3; text-decoration: none; transition: color 0.2s ease-in-out; }
+a:hover { color: #003d80; text-decoration: underline; }
+
+/* =========================================
+   TITLE BLOCK
+========================================= */
+.title {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #007bff;
+}
+.title h1 {
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 700;
+  font-size: 2.8em;
+  color: #004085;
+}
+.title p {
+  color: #555;
+  font-size: 0.95em;
+}
+
+/* =========================================
+   HEADINGS
+========================================= */
+h1, h2, h3, h4 {
+  font-family: "Merriweather", Georgia, serif;
+  font-weight: 600;
+  margin-top: 45px;
+  margin-bottom: 15px;
+}
+h1 {
+  font-size: 2.4em;
+  color: #004085;
+  border-bottom: 3px solid #007bff;
+  padding-bottom: 8px;
+}
+h2 {
+  font-size: 2em;
+  color: #006b4f;
+  border-left: 6px solid #28a745;
+  padding-left: 12px;
+  background: linear-gradient(to right, #f4fdf6, #ffffff);
+}
+h3 {
+  font-size: 1.5em;
+  color: #138496;
+  border-left: 4px solid #17a2b8;
+  padding-left: 8px;
+}
+h4 {
+  font-size: 1.25em;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* =========================================
+   TABLE OF CONTENTS
+========================================= */
+.tocify {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
+.tocify li a {
+  color: #0056b3;
+  font-size: 0.95em;
+}
+.tocify li a:hover {
+  color: #003d80;
+  font-weight: 600;
+}
+
+/* =========================================
+   TABLES
+========================================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+th, td {
+  padding: 0.9rem 1rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+  vertical-align: top;
+}
+thead th {
+  background-color: #0056b3;
+  color: #fff;
+  font-weight: 600;
+}
+tbody tr:nth-child(even) { background-color: #f8f9fa; }
+tbody tr:hover { background-color: #eaf2ff; transition: background-color 0.2s; }
+caption {
+  caption-side: bottom;
+  font-style: italic;
+  color: #555;
+  font-size: 0.95em;
+  margin-top: 6px;
+}
+
+/* =========================================
+   CODE BLOCKS
+========================================= */
+pre {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.9em;
+  font-family: "Consolas", "Courier New", monospace;
+}
+code {
+  background-color: #e6f2ff;
+  color: #004085;
+  padding: 0.25em 0.45em;
+  border-radius: 4px;
+}
+
+/* =========================================
+   FIGURES & VISUALS
+========================================= */
+.plot, .figure {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 18px;
+  margin: 30px 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+.caption {
+  text-align: center;
+  font-size: 0.95em;
+  font-style: italic;
+  color: #555;
+  margin-top: 8px;
+}
+
+/* =========================================
+   BLOCKQUOTES
+========================================= */
+blockquote {
+  border-left: 5px solid #17a2b8;
+  background-color: #f0f9fa;
+  padding: 15px 25px;
+  color: #444;
+  font-style: italic;
+  margin: 1.8em 0;
+  border-radius: 5px;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+.btn, .btn-primary {
+  background-color: #007bff;
+  color: #fff;
+  padding: 0.6rem 1.1rem;
+  border-radius: 6px;
+  border: none;
+  text-decoration: none;
+  transition: background-color 0.25s ease-in-out, transform 0.2s;
+}
+.btn:hover, .btn-primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   SEPARATORS & FOOTER
+========================================= */
+hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, #007bff, transparent);
+  margin: 2.5rem 0;
+}
+footer {
+  text-align: center;
+  color: #999;
+  font-size: 0.9em;
+  margin-top: 60px;
+  padding-top: 12px;
+  border-top: 1px solid #dee2e6;
+}
+
+/* =========================================
+   RESPONSIVE OPTIMIZATION
+========================================= */
+@media (max-width: 768px) {
+  body { margin: 15px; font-size: 0.98em; }
+  h1 { font-size: 2.1em; }
+  h2 { font-size: 1.7em; }
+  h3 { font-size: 1.35em; }
+  table, pre, .plot { font-size: 0.92em; }
+  .title h1 { font-size: 2.2em; }
+}
+</style>
+
+
+
+```{r setup, include=FALSE}
+# Suppress messages and warnings from library loads
+suppressPackageStartupMessages({
+  library(psych)
+  library(car)
+  library(corrplot)
+  library(broom)
+  library(biotools)    # For Box's M test
+  library(ResourceSelection)
+  library(rstatix)      # kruskal_test, dunn_test
+library(viridis)
+  library(lme4)    # For mixed-effects modeling
+  library(randomForest)
+  library(rcompanion)
+library(knitr)
+  library(effects)
+  library(effectsize)
+library(sjPlot)
+  library(MASS)
+   library(tidyverse)
+  library(ggplot2)
+library(janitor)
+library(forcats)
+library(scales)
+library(vcd)
+library(knitr)
+library(kableExtra)
+library(gtsummary)  # For publication-ready tables
+library(corrplot)   # For correlation heatmaps
+library(ggpubr)     # For advanced ggplot2 extensions
+library(gridExtra)  # For arranging multiple plots
+library(broom)
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+  library(readxl)
+  library(janitor)
+  library(skimr)
+  library(moments)
+  library(knitr)
+  library(kableExtra)
+  library(gtsummary)
+  library(gt)
+  library(DataExplorer)
+  library(GGally)
+  library(plotly)
+  library(patchwork)
+  library(corrplot)
+  library(scales)
+ library(likert)
+  library(ggpubr)
+})
+
+# Global chunk options
+knitr::opts_chunk$set(
+  echo = params$show_code,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 10,
+  fig.height = 6,
+  out.width = "95%",
+  dpi = 300
+)
+
+# Custom table rendering function
+create_table <- function(data, caption = "") {
+  data %>%
+    kable(caption = caption, align = "l") %>%
+    kable_styling(
+      bootstrap_options = c("striped", "hover", "condensed"),
+      full_width = FALSE,
+      position = "center"
+    ) %>%
+    scroll_box(width = "100%", height = "400px")
+}
+
+# Metadata for document
+doc_info <- list(
+  title = rmarkdown::metadata$title,
+  author = rmarkdown::metadata$author,
+  generated_on = format(params$analysis_date, "%B %d, %Y"),
+  version = "v1.2",
+  r_version = paste(R.version$major, R.version$minor, sep = "."),
+  packages = sessionInfo()$otherPkgs
+)
+
+
+
+# Custom theme for publication-ready plots
+theme_publication <- function(base_size = 11,
+                             base_family = "",
+                             grid_color = "grey94",
+                             border_color = "grey30",
+                             background_color = "white",
+                             text_color = "grey15",
+                             subtitle_color = "grey40",
+                             caption_color = "grey50",
+                             legend_position = "right") {
+  
+  # Validate inputs
+  legend_position <- match.arg(legend_position, c("right", "left", "top", "bottom", "none"))
+  
+  # Calculate relative sizes for consistent scaling
+  title_size <- base_size + 3
+  subtitle_size <- base_size + 1
+  caption_size <- base_size - 1
+  axis_title_size <- base_size + 0.5
+  axis_text_size <- base_size - 0.5
+  legend_title_size <- base_size
+  legend_text_size <- base_size - 1
+  strip_text_size <- base_size
+  
+  # Base theme
+  base_theme <- theme_minimal(base_size = base_size, base_family = base_family)
+  
+  # Build publication theme
+  base_theme +
+    theme(
+      # Plot elements - centered for publications
+      plot.title = element_text(
+        size = title_size,
+        face = "bold",
+        hjust = 0.5,  # Centered for publications
+        color = text_color,
+        margin = margin(b = 15)
+      ),
+      plot.subtitle = element_text(
+        size = subtitle_size,
+        hjust = 0.5,  # Centered for publications
+        color = subtitle_color,
+        margin = margin(b = 20),
+        lineheight = 1.1
+      ),
+      plot.caption = element_text(
+        size = caption_size,
+        face = "italic",
+        hjust = 0,  # Left-aligned for source citations
+        color = caption_color,
+        margin = margin(t = 15)
+      ),
+      plot.title.position = "plot",  # Align with plot area, not panel
+      plot.caption.position = "plot",
+      
+      # Axis elements
+      axis.title = element_text(
+        size = axis_title_size,
+        face = "bold",
+        color = text_color
+      ),
+      axis.title.x = element_text(margin = margin(t = 10)),
+      axis.title.y = element_text(margin = margin(r = 10), angle = 90),
+      axis.text = element_text(
+        size = axis_text_size,
+        color = text_color
+      ),
+      axis.text.x = element_text(margin = margin(t = 5)),
+      axis.text.y = element_text(margin = margin(r = 5)),
+      
+      # Axis lines and ticks
+      axis.line = element_line(color = border_color, linewidth = 0.5),
+      axis.ticks = element_line(color = border_color, linewidth = 0.3),
+      axis.ticks.length = unit(0.15, "cm"),
+      
+      # Legend elements
+      legend.title = element_text(
+        size = legend_title_size,
+        face = "bold",
+        color = text_color
+      ),
+      legend.text = element_text(
+        size = legend_text_size,
+        color = text_color
+      ),
+      legend.position = legend_position,
+      legend.key.size = unit(0.8, "cm"),
+      legend.margin = margin(10, 10, 10, 15),
+      legend.box.spacing = unit(0.4, "cm"),
+      legend.background = element_rect(
+        fill = background_color,
+        color = NA
+      ),
+      legend.key = element_rect(
+        fill = background_color,
+        color = NA
+      ),
+      
+      # Panel elements - clean grid for publications
+      panel.grid.major = element_line(
+        color = grid_color,
+        linewidth = 0.3,
+        linetype = "solid"
+      ),
+      panel.grid.minor = element_blank(),  # Remove minor grid for cleaner look
+      panel.border = element_rect(
+        color = border_color,
+        fill = NA,
+        linewidth = 0.5
+      ),
+      panel.background = element_rect(
+        fill = background_color,
+        color = NA
+      ),
+      
+      # Facet strip elements
+      strip.background = element_rect(
+        fill = "grey96",
+        color = border_color,
+        linewidth = 0.3
+      ),
+      strip.text = element_text(
+        size = strip_text_size,
+        face = "bold",
+        color = text_color,
+        margin = margin(4, 8, 4, 8)
+      ),
+      strip.placement = "outside",
+      
+      # Plot background and margins
+      plot.background = element_rect(
+        fill = background_color,
+        color = NA
+      ),
+      plot.margin = margin(20, 20, 20, 20),
+      
+      # Ensure complete theme
+      complete = TRUE
+    )
+}
+
+# Variant themes for specific publication needs
+
+#' Black and white theme for print publications
+theme_publication_bw <- function(...) {
+  theme_publication(
+    grid_color = "grey90",
+    border_color = "black",
+    text_color = "black",
+    subtitle_color = "grey30",
+    caption_color = "grey40",
+    ...
+  )
+}
+
+#' Minimal theme for simple, clean plots
+theme_publication_minimal <- function(...) {
+  theme_publication(
+    grid_color = "grey96",
+    ...
+  ) +
+    theme(
+      panel.border = element_blank(),
+      axis.line = element_line(color = "grey40", linewidth = 0.4),
+      panel.grid.major = element_line(color = "grey96", linewidth = 0.25)
+    )
+}
+
+#' Presentation theme with larger text
+theme_publication_presentation <- function(...) {
+  theme_publication(
+    base_size = 14,  # Larger text for presentations
+    grid_color = "grey92",
+    ...
+  )
+}
+
+#' Times New Roman theme for academic journals
+theme_publication_times <- function(...) {
+  theme_publication(
+    base_family = "Times New Roman",
+    base_size = 10,  # Smaller size for academic publications
+    ...
+  )
+}
+
+
+# # Set as default theme
+ theme_set(theme_publication())
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+```
+
+
+
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(readxl)
+library(janitor)
+
+# Read and clean data
+data <- read_excel("Documents/HOUSEHOLD_FACTORS_INFLUENCING_THE_USE_OF_SPACE_ALONG_WATER_BODIES.xlsx") %>% 
+  clean_names()
+
+# Comprehensive column renaming
+data_cleaned <- data %>%
+  rename(
+    # Location Information
+    community_name = b_what_is_the_name_of_the_community,
+    neighbourhood_name = c_what_is_the_name_of_the_neighbourhood,
+    geo_coordinates = d_what_are_the_geog_ates_of_the_location,
+    latitude = d_what_are_the_geog_ates_of_the_location_latitude,
+    longitude = d_what_are_the_geog_ates_of_the_location_longitude,
+    altitude = d_what_are_the_geog_ates_of_the_location_altitude,
+    gps_precision = d_what_are_the_geog_ates_of_the_location_precision,
+    
+    # Household Head Demographics
+    hh_head_sex = f_sex_of_household_head,
+    hh_head_education_level = g_what_is_the_level_f_the_household_head,
+    hh_head_age = h_how_old_is_the_household_head,
+    hh_head_age_cohort = i_which_age_cohort_ehold_head_belong_to,
+    ethnic_group = j_which_ethnic_group_do_you_b,
+    ethnic_group_other = k_specify,
+    mother_tongue = l_what_is_your_mother_tongue,
+    religion = m_what_religion_do_you_belong,
+    
+    # Livelihood and Economic
+    main_income_source = o_what_is_the_main_source_of,
+    other_livelihood = q_what_other_liveli_ood_do_you_depend_on,
+    monthly_income = r_what_is_your_hous_old_income_per_month,
+    monthly_expenditure = s_how_much_does_you_old_spend_in_a_month,
+    
+    # Residence Status
+    resident_status = t_what_is_your_stat_s_as_a_resident_here,
+    reason_for_settling = u_why_did_the_household_decid,
+    rent_payment_recipient = if_low_rent_who_do_you_pay_yo,
+    years_lived_here = y_how_long_has_the_old_been_living_here,
+    
+    # Solid Waste Disposal
+    solid_waste_disposal_method = z_where_how_do_you_the_house,
+    solid_waste_alternative = aa_in_what_alternati_of_your_solid_waste,
+    solid_waste_reason = bb_why_do_you_the_household,
+    solid_waste_ranking = dd_please_rank_how_you_dispose_of_your_solid_waste,
+    
+    # Solid Waste Ranking Options
+    solid_waste_burrying = burrying,
+    solid_waste_burning = burning,
+    solid_waste_rivers = in_the_rivers,
+    solid_waste_communal_dumpsite = communal_dumpsite,
+    solid_waste_open_dumping = open_dumpiing,
+    solid_waste_informal_collectors = informal_waste_collectors,
+    solid_waste_formal_collectors = formal_waste_collectors,
+    solid_waste_others = others,
+    solid_waste_most_dominant = jj_which_one_is_the_most_dorminant,
+    
+    # Liquid Waste Disposal
+    liquid_waste_disposal_method = ee_where_how_do_you_the_house,
+    liquid_waste_reason = gg_why_do_you_the_household,
+    liquid_waste_ranking = ii_please_rank_how_you_dispose_you_dispose_off_your_liquid_waste,
+    
+    # Liquid Waste Ranking Options
+    liquid_waste_river = in_the_river,
+    liquid_waste_soakaway = soakaway,
+    liquid_waste_open_dumping = open_dumping,
+    liquid_waste_drains = drains,
+    
+    # Planning and Permits
+    has_planning_permit = kk_did_the_physical_planning_o,
+    permit_acquisition_reason = ll_if_yes_what_inf_o_acquire_the_permit,
+    no_permit_reason = mm_if_no_why_did_you_not_acqu,
+    
+    # Water Body Interaction
+    encountered_authorities = oo_has_your_househo_to_the_river_stream,
+    authority_encounter_details = pp_if_yes_what_was_the_encounter,
+    
+    # Benefits of Living Near Water
+    benefits_selected = qq_which_of_these_benefits_do,
+    benefit_security_safety = secur_safe,
+    benefit_affordable_water = acce_to_aff_wat,
+    benefit_fresh_air = fresh_air,
+    benefit_waste_disposal = ease_of_depo_wast,
+    benefit_open_defecation = open_defeca,
+    benefit_free_water = acce_to_free_wate,
+    benefit_others = others_2,
+    benefit_others_specify = rr_specify,
+    
+    # Challenges of Living Near Water
+    challenges_selected = ss_which_of_these_challenges_d,
+    challenge_malaria = malaria,
+    challenge_foul_smell = foul_smell,
+    challenge_other_ailments = other_ailment_sick,
+    challenge_flooding = flooding,
+    challenge_unsightly_waste = unsightedness_of_waste,
+    challenge_other = other_specify,
+    challenge_other_specify = tt_specify,
+    
+    # Relocation Willingness
+    willing_to_relocate = uu_are_you_willing_to_relocate,
+    relocation_reason_yes = vv_if_yes_why,
+    relocation_reason_no = ww_if_no_what_is_your_reason,
+    
+    # Reasons for Not Relocating
+    no_relocation_high_cost = high_cost_of_reloc,
+    no_relocation_land_cost = high_cost_of_land,
+    no_relocation_work_proximity = prox_to_work,
+    no_relocation_living_cost = cost_of_liv,
+    no_relocation_community = sense_of_comm,
+    no_relocation_family_land = family_land,
+    no_relocation_other = other,
+    no_relocation_other_specify = xx_specify,
+    
+    # Additional Comments
+    additional_comments = yy_any_other_thing_g_close_to_the_river
+  )
+
+# Data Cleaning Steps
+data_cleaned <- data_cleaned %>%
+  mutate(
+    # Standardize community names
+    community_name = case_when(
+      tolower(community_name) == "aboabo" ~ "Aboabo",
+      tolower(community_name) == "ahinsan" ~ "Ahinsan",
+      TRUE ~ community_name
+    ),
+    
+    # Convert numeric columns properly
+    monthly_income = as.numeric(monthly_income),
+    monthly_expenditure = as.numeric(monthly_expenditure),
+    years_lived_here = as.numeric(years_lived_here),
+    
+    # Standardize Yes/No responses
+    across(c(has_planning_permit, encountered_authorities, willing_to_relocate,
+             benefit_security_safety, benefit_affordable_water, benefit_fresh_air,
+             benefit_waste_disposal, benefit_open_defecation, benefit_free_water,
+             benefit_others, challenge_malaria, challenge_foul_smell, 
+             challenge_other_ailments, challenge_flooding, challenge_unsightly_waste,
+             challenge_other), 
+           ~case_when(
+             . == "Yes" ~ "Yes",
+             . == "No" ~ "No",
+             TRUE ~ NA_character_
+           )),
+    
+    # Clean education levels
+    hh_head_education_level = case_when(
+      hh_head_education_level %in% c("no formal education", "non formal education") ~ "No formal education",
+      hh_head_education_level == "jhs" ~ "JHS",
+      hh_head_education_level == "shs" ~ "SHS",
+      hh_head_education_level == "vocational/technical" ~ "Vocational/Technical",
+      hh_head_education_level == "university" ~ "University",
+      TRUE ~ hh_head_education_level
+    ),
+    
+    # Standardize religion
+    religion = case_when(
+      religion == "islamic" ~ "Islamic",
+      religion == "christian" ~ "Christian",
+      religion == "none" ~ "None",
+      religion == "traditional african religion" ~ "Traditional African Religion",
+      TRUE ~ religion
+    ),
+    
+    # Clean altitude (remove text, keep numeric)
+    altitude = as.numeric(altitude),
+    gps_precision = as.numeric(gps_precision)
+  )
+
+
+
+data_cleaned <- data_cleaned %>%
+  mutate(reason_for_settling = str_squish(reason_for_settling),       # remove extra spaces
+         reason_for_settling = str_to_lower(reason_for_settling),     # make lowercase
+         reason_for_settling = case_when(
+           reason_for_settling %in% c("exisiting schooling opportunities") ~ "Schooling opportunities",
+           reason_for_settling %in% c("housing availability and affordability") ~ "Housing availability and affordability",
+           reason_for_settling %in% c("i have family members in this community/i want to be close to my family members") ~ "Close to family",
+           reason_for_settling %in% c("i want to be close to friends") ~ "Close to friends",
+           reason_for_settling %in% c("low rent") ~ "Low rent",
+           reason_for_settling %in% c("my parents lived here") ~ "Parents lived here",
+           reason_for_settling %in% c("my spouse lives here") ~ "Spouse lives here",
+           reason_for_settling %in% c("personal or historical reasons") ~ "Personal or historical reasons",
+           reason_for_settling %in% c("proximity to workplace") ~ "Proximity to workplace",
+           reason_for_settling %in% c("security and safety") ~ "Security and safety",
+           reason_for_settling %in% c("the family head gave it to me") ~ "Given by family head",
+           reason_for_settling %in% c("work and livelihood opportunities") ~ "Work and livelihood opportunities",
+           TRUE ~ reason_for_settling
+         ))
+
+
+
+
+# Create dummy variable for dominant locational factor
+data_cleaned <- data_cleaned %>%
+  mutate(
+    proximity_dummy = if_else(reason_for_settling == "Proximity to workplace", 1, 0)
+  )
+
+
+
+
+# Check cleaned result
+#table(data_cleaned$reason_for_settling)
+
+
+#glimpse(data_cleaned)
+#lapply(data_cleaned, unique)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+# Load required libraries
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(scales)
+library(cluster)
+library(factoextra)
+library(gridExtra)
+
+
+
+# Custom kable function with white text
+kk <- function(df, caption = NULL, digits = 2,
+               align = "l", font_size = 12,
+               bootstrap_options = c("striped", "hover"),
+               full_width = FALSE, html_font = "Cambria") {
+  
+  kable(df, caption = caption, digits = digits, align = align) |>
+    kable_classic(full_width = full_width, html_font = html_font) |>
+    kable_styling(font_size = font_size,
+                  bootstrap_options = bootstrap_options) |>
+    row_spec(0, color = "white")    # Header text color
+}
+
+```
+
+
+
+```{r}
+
+
+# Load required libraries
+library(tidyverse)
+library(kableExtra)
+library(janitor)
+library(scales)
+library(ggthemes)
+library(viridis)
+library(car)
+library(MASS)
+library(broom)
+library(psych)
+library(corrplot)
+library(FactoMineR)
+library(factoextra)
+
+
+# Custom theme for plots
+theme_publication <- function() {
+  theme_minimal() +
+    theme(
+      text = element_text(family = "sans", size = 11),
+      plot.title = element_text(face = "bold", size = 14, hjust = 0.5),
+      plot.subtitle = element_text(size = 11, hjust = 0.5, color = "gray40"),
+      axis.title = element_text(face = "bold", size = 11),
+      axis.text = element_text(size = 10),
+      legend.position = "bottom",
+      legend.title = element_text(face = "bold"),
+      panel.grid.minor = element_blank(),
+      plot.caption = element_text(size = 9, hjust = 0, color = "gray50")
+    )
+}
+```
+
+#  Introduction and data overview
+
+```{r data_overview}
+# Summary statistics
+
+data_summary <- data.frame(
+  Metric = c(
+    "Total Households",
+    "Communities",
+    "Male-headed HH (%)",
+    "Female-headed HH (%)",
+    "Median Years Lived",
+    "Households with Planning Permit (%)"
+  ),
+  Value = c(
+    nrow(data_cleaned),
+    length(unique(na.omit(data_cleaned$community_name))),
+    round(sum(data_cleaned$hh_head_sex == "male", na.rm = TRUE) /
+            sum(!is.na(data_cleaned$hh_head_sex)) * 100, 1),
+    round(sum(data_cleaned$hh_head_sex == "female", na.rm = TRUE) /
+            sum(!is.na(data_cleaned$hh_head_sex)) * 100, 1),
+    round(median(data_cleaned$years_lived_here, na.rm = TRUE), 1),
+    round(sum(data_cleaned$has_planning_permit == "Yes", na.rm = TRUE) /
+            sum(!is.na(data_cleaned$has_planning_permit)) * 100, 1)
+  ),
+  check.names = FALSE
+)
+
+
+kk(data_summary, caption = "Table 1: Study Overview and Basic Demographics", align = c("l", "r"))
+```
+
+#  Socio-Demographic Characteristics
+
+##  Household Head Characteristics
+
+```{r demographics_table}
+# Create  demographic table
+demo_summary <- data_cleaned %>%
+  summarise(
+    `Mean Age (years)` = round(mean(hh_head_age, na.rm = TRUE), 1),
+    `SD Age` = round(sd(hh_head_age, na.rm = TRUE), 1),
+    `Male (%)` = round(sum(hh_head_sex == "male", na.rm = TRUE) / n() * 100, 1),
+    `Female (%)` = round(sum(hh_head_sex == "female", na.rm = TRUE) / n() * 100, 1)
+  )
+
+kk(demo_summary, caption = "Table 2: Household Head Demographics", align = "r")
+
+# Education distribution
+edu_table <- data_cleaned %>%
+  filter(!is.na(hh_head_education_level)) %>%
+  count(hh_head_education_level) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Education Level` = hh_head_education_level
+  ) %>%
+  select(`Education Level`, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(edu_table, caption = "Table 3: Educational Attainment of Household Heads", 
+   align = c("l", "r", "r"))
+
+# Religion distribution
+religion_table <- data_cleaned %>%
+  filter(!is.na(religion)) %>%
+  count(religion) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    Religion = religion
+  ) %>%
+  select(Religion, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(religion_table, caption = "Table 4: Religious Affiliation", align = c("l", "r", "r"))
+```
+
+##  Economic Characteristics
+
+```{r economic_profile}
+# Income and expenditure summary
+econ_summary <- data_cleaned %>%
+  summarise(
+    `Mean Monthly Income (GHS)` = round(mean(monthly_income, na.rm = TRUE), 2),
+    `Median Monthly Income (GHS)` = round(median(monthly_income, na.rm = TRUE), 2),
+    `SD Income` = round(sd(monthly_income, na.rm = TRUE), 2),
+    `Mean Monthly Expenditure (GHS)` = round(mean(monthly_expenditure, na.rm = TRUE), 2),
+    `Median Monthly Expenditure (GHS)` = round(median(monthly_expenditure, na.rm = TRUE), 2),
+    `SD Expenditure` = round(sd(monthly_expenditure, na.rm = TRUE), 2)
+  ) %>%
+  pivot_longer(everything(), names_to = "Metric", values_to = "Value")
+
+kk(econ_summary, caption = "Table 5: Economic Profile of Households", align = c("l", "r"))
+
+# Main income sources
+income_sources <- data_cleaned %>%
+  filter(!is.na(main_income_source)) %>%
+  count(main_income_source) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Income Source` = main_income_source
+  ) %>%
+  select(`Income Source`, n, Percentage) %>%
+  arrange(desc(n)) %>%
+  slice(1:10)
+
+kk(income_sources, caption = "Table 6: Top 10 Main Income Sources", align = c("l", "r", "r"))
+```
+
+#  Residential Patterns and Settlement Dynamics
+
+## Reasons for Settling
+
+```{r settlement_reasons}
+# Reasons for settling distribution
+settlement_table <- data_cleaned %>%
+  filter(!is.na(reason_for_settling)) %>%
+  count(reason_for_settling) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Reason for Settling` = reason_for_settling
+  ) %>%
+  select(`Reason for Settling`, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(settlement_table, caption = "Table 7: Reasons for Settling in Current Location", 
+   align = c("l", "r", "r"))
+
+# Residence status
+residence_status <- data_cleaned %>%
+  filter(!is.na(resident_status)) %>%
+  count(resident_status) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Residence Status` = resident_status
+  ) %>%
+  select(`Residence Status`, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(residence_status, caption = "Table 8: Residence Status", align = c("l", "r", "r"))
+
+# Duration of residence
+duration_summary <- data_cleaned %>%
+  filter(!is.na(years_lived_here)) %>%
+  summarise(
+    `Mean Years` = round(mean(years_lived_here), 1),
+    `Median Years` = round(median(years_lived_here), 1),
+    `Min Years` = round(min(years_lived_here), 1),
+    `Max Years` = round(max(years_lived_here), 1),
+    `SD` = round(sd(years_lived_here), 1)
+  ) %>%
+  pivot_longer(everything(), names_to = "Metric", values_to = "Years")
+
+kk(duration_summary, caption = "Table 9: Duration of Residence", align = c("l", "r"))
+```
+
+# Waste Disposal Practices
+
+##  Solid Waste Disposal
+
+```{r solid_waste}
+
+
+# Solid waste disposal methods
+solid_waste_table <- data_cleaned %>%
+  filter(!is.na(solid_waste_disposal_method)) %>%
+  count(solid_waste_disposal_method) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Disposal Method` = solid_waste_disposal_method
+  ) %>%
+  select(`Disposal Method`, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(solid_waste_table,
+   caption = "Table 10: Solid Waste Disposal Methods",
+   align = c("l", "r", "r"))
+
+# Reasons for solid waste disposal method
+solid_waste_reasons <- data_cleaned %>%
+  filter(!is.na(solid_waste_reason), solid_waste_reason != "9") %>%  # Remove miscoded '9'
+  count(solid_waste_reason) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Reason` = solid_waste_reason
+  ) %>%
+  select(Reason, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(solid_waste_reasons,
+   caption = "Table 11: Reasons for Solid Waste Disposal Method Choice",
+   align = c("l", "r", "r"))
+
+
+
+
+```
+
+##  Liquid Waste Disposal
+
+```{r liquid_waste}
+# Liquid waste disposal methods
+liquid_waste_table <- data_cleaned %>%
+  filter(!is.na(liquid_waste_disposal_method), liquid_waste_disposal_method != "MIssing") %>%
+  count(liquid_waste_disposal_method) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Disposal Method` = liquid_waste_disposal_method
+  ) %>%
+  select(`Disposal Method`, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(liquid_waste_table, caption = "Table 12: Liquid Waste Disposal Methods", 
+   align = c("l", "r", "r"))
+
+# Reasons for liquid waste disposal method
+liquid_waste_reasons <- data_cleaned %>%
+  filter(!is.na(liquid_waste_reason)) %>%
+  count(liquid_waste_reason) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Reason` = liquid_waste_reason
+  ) %>%
+  select(Reason, n, Percentage) %>%
+  arrange(desc(n))
+
+kk(liquid_waste_reasons, caption = "Table 13: Reasons for Liquid Waste Disposal Method Choice", 
+   align = c("l", "r", "r"))
+```
+
+#  Planning and Regulatory Compliance
+
+```{r planning_permits}
+# Planning permit status
+permit_status <- data_cleaned %>%
+  filter(!is.na(has_planning_permit)) %>%
+  count(has_planning_permit) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Has Permit` = has_planning_permit
+  ) %>%
+  select(`Has Permit`, n, Percentage)
+
+kk(permit_status, caption = "Table 14: Planning Permit Status", align = c("l", "r", "r"))
+
+# Reasons for not acquiring permit
+no_permit_reasons <- data_cleaned %>%
+  filter(!is.na(no_permit_reason)) %>%
+  count(no_permit_reason) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Reason` = no_permit_reason
+  ) %>%
+  select(Reason, n, Percentage) %>%
+  arrange(desc(n)) %>%
+  slice(1:8)
+
+kk(no_permit_reasons, caption = "Table 15: Top Reasons for Not Acquiring Planning Permit", 
+   align = c("l", "r", "r"))
+
+# Authority encounters
+authority_encounters <- data_cleaned %>%
+  filter(!is.na(encountered_authorities)) %>%
+  count(encountered_authorities) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Encountered Authorities` = encountered_authorities
+  ) %>%
+  select(`Encountered Authorities`, n, Percentage)
+
+kk(authority_encounters, caption = "Table 16: Encounters with Authorities", 
+   align = c("l", "r", "r"))
+```
+
+#  Benefits and Challenges of Living Near Water Bodies
+
+##  Perceived Benefits
+
+```{r benefits}
+# Count benefits (handling multiple selections)
+benefits_data <- data_cleaned %>%
+  select(benefit_security_safety, benefit_affordable_water, benefit_fresh_air,
+         benefit_waste_disposal, benefit_open_defecation, benefit_free_water) %>%
+  summarise(across(everything(), ~sum(. == "Yes", na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "Benefit", values_to = "Count") %>%
+  mutate(
+    Benefit = str_replace_all(Benefit, "benefit_", "") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title(),
+    Percentage = round(Count / nrow(data_cleaned) * 100, 1)
+  ) %>%
+  arrange(desc(Count))
+
+kk(benefits_data, caption = "Table 17: Perceived Benefits of Living Near Water Bodies", 
+   align = c("l", "r", "r"))
+```
+
+##  Challenges Experienced
+
+```{r challenges}
+# Count challenges
+challenges_data <- data_cleaned %>%
+  select(challenge_malaria, challenge_foul_smell, challenge_other_ailments,
+         challenge_flooding, challenge_unsightly_waste) %>%
+  summarise(across(everything(), ~sum(. == "Yes", na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "Challenge", values_to = "Count") %>%
+  mutate(
+    Challenge = str_replace_all(Challenge, "challenge_", "") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title(),
+    Percentage = round(Count / nrow(data_cleaned) * 100, 1)
+  ) %>%
+  arrange(desc(Count))
+
+kk(challenges_data, caption = "Table 18: Challenges of Living Near Water Bodies", 
+   align = c("l", "r", "r"))
+```
+
+#  Relocation Willingness and Barriers
+
+```{r relocation}
+# Willingness to relocate
+relocation_willingness <- data_cleaned %>%
+  filter(!is.na(willing_to_relocate)) %>%
+  count(willing_to_relocate) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Willing to Relocate` = willing_to_relocate
+  ) %>%
+  select(`Willing to Relocate`, n, Percentage)
+
+kk(relocation_willingness, caption = "Table 19: Willingness to Relocate", 
+   align = c("l", "r", "r"))
+
+# Reasons for not relocating
+no_relocation_data <- data_cleaned %>%
+  select(no_relocation_high_cost, no_relocation_land_cost, no_relocation_work_proximity,
+         no_relocation_living_cost, no_relocation_community, no_relocation_family_land) %>%
+  summarise(across(everything(), ~sum(. == "Yes", na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "Reason", values_to = "Count") %>%
+  mutate(
+    Reason = str_replace_all(Reason, "no_relocation_", "") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title(),
+    Percentage = round(Count / sum(Count) * 100, 1)
+  ) %>%
+  arrange(desc(Count))
+
+kk(no_relocation_data, caption = "Table 20: Barriers to Relocation", 
+   align = c("l", "r", "r"))
+```
+
+#  Statistical Analyses
+
+##  Chi-Square Tests: Associations Between Categorical Variables
+
+```{r chi_square_tests}
+# Function to perform chi-square test and format results
+perform_chi_test <- function(var1, var2, var1_name, var2_name) {
+  # Create contingency table
+  tbl <- table(var1, var2, useNA = "no")
+  
+  # Perform chi-square test only if table is valid
+  if(min(dim(tbl)) > 1 && sum(tbl) > 0) {
+    test <- chisq.test(tbl)
+    
+    return(data.frame(
+      `Variable 1` = var1_name,
+      `Variable 2` = var2_name,
+      `Chi-Square` = round(test$statistic, 3),
+      `df` = test$parameter,
+      `p-value` = round(test$p.value, 4),
+      Significance = ifelse(test$p.value < 0.001, "***",
+                           ifelse(test$p.value < 0.01, "**",
+                                 ifelse(test$p.value < 0.05, "*", "ns")))
+    ))
+  }
+  return(NULL)
+}
+
+# Key associations to test
+chi_results <- bind_rows(
+  perform_chi_test(data_cleaned$hh_head_sex, data_cleaned$has_planning_permit,
+                   "HH Head Sex", "Planning Permit"),
+  perform_chi_test(data_cleaned$hh_head_education_level, data_cleaned$has_planning_permit,
+                   "Education Level", "Planning Permit"),
+  perform_chi_test(data_cleaned$hh_head_sex, data_cleaned$willing_to_relocate,
+                   "HH Head Sex", "Willing to Relocate"),
+  perform_chi_test(data_cleaned$resident_status, data_cleaned$has_planning_permit,
+                   "Residence Status", "Planning Permit"),
+  perform_chi_test(data_cleaned$community_name, data_cleaned$liquid_waste_disposal_method,
+                   "Community", "Liquid Waste Disposal"),
+  perform_chi_test(data_cleaned$hh_head_education_level, data_cleaned$willing_to_relocate,
+                   "Education Level", "Willing to Relocate")
+)
+
+kk(chi_results, caption = "Table 21: Chi-Square Tests of Association", 
+   align = c("l", "l", "r", "r", "r", "c"))
+```
+
+##  Logistic Regression: Predictors of Planning Permit Acquisition
+
+```{r logistic_permit}
+# Prepare data for logistic regression
+model_data_permit <- data_cleaned %>%
+  filter(!is.na(has_planning_permit), !is.na(hh_head_education_level), 
+         !is.na(hh_head_sex), !is.na(monthly_income), !is.na(years_lived_here)) %>%
+  mutate(
+    permit_binary = ifelse(has_planning_permit == "Yes", 1, 0),
+    education_ordered = factor(hh_head_education_level, 
+                               levels = c("No formal education", "JHS", "SHS", 
+                                        "Vocational/Technical", "University"),
+                               ordered = TRUE)
+  )
+
+# Logistic regression model
+logit_permit <- glm(permit_binary ~ hh_head_sex + education_ordered + 
+                     log(monthly_income + 1) + years_lived_here,
+                   data = model_data_permit, family = binomial)
+
+# Format results
+permit_results <- tidy(logit_permit, exponentiate = TRUE, conf.int = TRUE) %>%
+  mutate(
+    Term = str_replace_all(term, "education_ordered", "Education: "),
+    `Odds Ratio` = round(estimate, 3),
+    `95% CI Lower` = round(conf.low, 3),
+    `95% CI Upper` = round(conf.high, 3),
+    `p-value` = round(p.value, 4),
+    Significance = ifelse(p.value < 0.001, "***",
+                         ifelse(p.value < 0.01, "**",
+                               ifelse(p.value < 0.05, "*", "ns")))
+  ) %>%
+  select(Term, `Odds Ratio`, `95% CI Lower`, `95% CI Upper`, `p-value`, Significance)
+
+kk(permit_results, caption = "Table 22: Logistic Regression - Predictors of Planning Permit Acquisition", 
+   align = c("l", "r", "r", "r", "r", "c"))
+
+# Model fit statistics
+model_fit_permit <- data.frame(
+  Metric = c("AIC", "Null Deviance", "Residual Deviance", "N"),
+  Value = c(
+    round(AIC(logit_permit), 2),
+    round(logit_permit$null.deviance, 2),
+    round(logit_permit$deviance, 2),
+    nobs(logit_permit)
+  )
+)
+
+kk(model_fit_permit, caption = "Table 23: Model Fit Statistics - Planning Permit Model", 
+   align = c("l", "r"))
+```
+
+##  Logistic Regression: Predictors of Relocation Willingness
+
+```{r logistic_relocation}
+# Prepare data
+model_data_reloc <- data_cleaned %>%
+  filter(!is.na(willing_to_relocate), !is.na(hh_head_age), 
+         !is.na(monthly_income), !is.na(years_lived_here),
+         !is.na(challenge_flooding), !is.na(has_planning_permit)) %>%
+  mutate(
+    relocate_binary = ifelse(willing_to_relocate == "Yes", 1, 0),
+    flooding_yes = ifelse(challenge_flooding == "Yes", 1, 0),
+    permit_yes = ifelse(has_planning_permit == "Yes", 1, 0)
+  )
+
+# Logistic regression model
+logit_reloc <- glm(relocate_binary ~ hh_head_age + log(monthly_income + 1) + 
+                    years_lived_here + flooding_yes + permit_yes,
+                  data = model_data_reloc, family = binomial)
+
+# Format results
+reloc_results <- tidy(logit_reloc, exponentiate = TRUE, conf.int = TRUE) %>%
+  mutate(
+    Term = case_when(
+      term == "hh_head_age" ~ "HH Head Age",
+      term == "log(monthly_income + 1)" ~ "Log(Monthly Income)",
+      term == "years_lived_here" ~ "Years Lived Here",
+      term == "flooding_yes" ~ "Experiences Flooding",
+      term == "permit_yes" ~ "Has Planning Permit",
+      TRUE ~ term
+    ),
+    `Odds Ratio` = round(estimate, 3),
+    `95% CI Lower` = round(conf.low, 3),
+    `95% CI Upper` = round(conf.high, 3),
+    `p-value` = round(p.value, 4),
+    Significance = ifelse(p.value < 0.001, "***",
+                         ifelse(p.value < 0.01, "**",
+                               ifelse(p.value < 0.05, "*", "ns")))
+  ) %>%
+  select(Term, `Odds Ratio`, `95% CI Lower`, `95% CI Upper`, `p-value`, Significance)
+
+kk(reloc_results, caption = "Table 24: Logistic Regression - Predictors of Relocation Willingness", 
+   align = c("l", "r", "r", "r", "r", "c"))
+
+# Model fit statistics
+model_fit_reloc <- data.frame(
+  Metric = c("AIC", "Null Deviance", "Residual Deviance", "N"),
+  Value = c(
+    round(AIC(logit_reloc), 2),
+    round(logit_reloc$null.deviance, 2),
+    round(logit_reloc$deviance, 2),
+    nobs(logit_reloc)
+  )
+)
+
+kk(model_fit_reloc, caption = "Table 25: Model Fit Statistics - Relocation Willingness Model", 
+   align = c("l", "r"))
+```
+
+##  Multiple Regression: Factors Influencing Income
+
+```{r regression_income}
+# Prepare data
+model_data_income <- data_cleaned %>%
+  filter(!is.na(monthly_income), monthly_income > 0,
+         !is.na(hh_head_education_level), !is.na(hh_head_age),
+         !is.na(hh_head_sex)) %>%
+  mutate(
+    log_income = log(monthly_income),
+    education_years = case_when(
+      hh_head_education_level == "No formal education" ~ 0,
+      hh_head_education_level == "JHS" ~ 9,
+      hh_head_education_level == "SHS" ~ 12,
+      hh_head_education_level == "Vocational/Technical" ~ 12,
+      hh_head_education_level == "University" ~ 16
+    )
+  )
+
+# Multiple regression
+income_model <- lm(log_income ~ hh_head_age + education_years + hh_head_sex,
+                   data = model_data_income)
+
+# Format results
+income_results <- tidy(income_model, conf.int = TRUE) %>%
+  mutate(
+    Term = case_when(
+      term == "hh_head_age" ~ "HH Head Age",
+      term == "education_years" ~ "Years of Education",
+      term == "hh_head_sexmale" ~ "Male (vs Female)",
+      TRUE ~ term
+    ),
+    Coefficient = round(estimate, 4),
+    `95% CI Lower` = round(conf.low, 4),
+    `95% CI Upper` = round(conf.high, 4),
+    `p-value` = round(p.value, 4),
+    Significance = ifelse(p.value < 0.001, "***",
+                         ifelse(p.value < 0.01, "**",
+                               ifelse(p.value < 0.05, "*", "ns")))
+  ) %>%
+  select(Term, Coefficient, `95% CI Lower`, `95% CI Upper`, `p-value`, Significance)
+
+kk(income_results, caption = "Table 26: Multiple Regression - Factors Influencing Log(Monthly Income)", 
+   align = c("l", "r", "r", "r", "r", "c"))
+
+# Model fit statistics
+model_fit_income <- data.frame(
+  Metric = c("R-squared", "Adjusted R-squared", "F-statistic", "p-value", "N"),
+  Value = c(
+    round(summary(income_model)$r.squared, 4),
+    round(summary(income_model)$adj.r.squared, 4),
+    round(summary(income_model)$fstatistic[1], 2),
+    format.pval(pf(summary(income_model)$fstatistic[1],
+                  summary(income_model)$fstatistic[2],
+                  summary(income_model)$fstatistic[3],
+                  lower.tail = FALSE), digits = 4),
+    nobs(income_model)
+  )
+)
+
+kk(model_fit_income, caption = "Table 27: Model Fit Statistics - Income Model", 
+   align = c("l", "r"))
+```
+
+##  Correlation Analysis: Numeric Variables
+
+```{r correlations}
+# Select numeric variables
+numeric_vars <- data_cleaned %>%
+  select(hh_head_age, monthly_income, monthly_expenditure, years_lived_here) %>%
+  filter(complete.cases(.))
+
+# Correlation matrix
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
+
+# Format as table
+cor_table <- as.data.frame(cor_matrix) %>%
+  rownames_to_column("Variable") %>%
+  mutate(across(where(is.numeric), ~round(., 3)))
+
+kk(cor_table, caption = "Table 28: Correlation Matrix of Key Numeric Variables", 
+   align = c("l", rep("r", ncol(cor_table)-1)))
+```
+
+#  Community Comparisons
+
+```{r community_comparison}
+# Compare communities on key metrics
+community_comparison <- data_cleaned %>%
+  filter(!is.na(community_name)) %>%
+  group_by(community_name) %>%
+  summarise(
+    N = n(),
+    `Mean Income (GHS)` = round(mean(monthly_income, na.rm = TRUE), 0),
+    `% With Permit` = round(sum(has_planning_permit == "Yes", na.rm = TRUE) / 
+                             sum(!is.na(has_planning_permit)) * 100, 1),
+    `% Willing to Relocate` = round(sum(willing_to_relocate == "Yes", na.rm = TRUE) / 
+                                     sum(!is.na(willing_to_relocate)) * 100, 1),
+    `% Experience Flooding` = round(sum(challenge_flooding == "Yes", na.rm = TRUE) / 
+                                     sum(!is.na(challenge_flooding)) * 100, 1),
+    `Mean Years Lived` = round(mean(years_lived_here, na.rm = TRUE), 1)
+  ) %>%
+  arrange(desc(N))
+
+kk(community_comparison, caption = "Table 29: Community-Level Comparisons", 
+   align = c("l", rep("r", 6)))
+```
+
+#  Visualizations
+
+##  Willingness to Relocate by Flooding Experience
+
+```{r plot_relocation_flooding, fig.cap="Figure 1: Relationship Between Flooding Experience and Relocation Willingness"}
+plot_data <- data_cleaned %>%
+  filter(!is.na(willing_to_relocate), !is.na(challenge_flooding)) %>%
+  count(challenge_flooding, willing_to_relocate) %>%
+  group_by(challenge_flooding) %>%
+  mutate(percentage = n / sum(n) * 100)
+
+ggplot(plot_data, aes(x = challenge_flooding, y = percentage, fill = willing_to_relocate)) +
+  geom_bar(stat = "identity", position = "fill", width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), 
+            position = position_fill(vjust = 0.5), 
+            color = "white", fontface = "bold", size = 4) +
+  scale_y_continuous(labels = percent_format()) +
+  scale_fill_manual(values = c("Yes" = "#d73027", "No" = "#4575b4"),
+                    name = "Willing to Relocate") +
+  labs(
+    title = "Willingness to Relocate by Flooding Experience",
+    subtitle = "Households experiencing flooding show higher relocation willingness",
+    x = "Experiences Flooding",
+    y = "Percentage"
+  ) 
+```
+
+## 10.2 Educational Attainment and Income Relationship
+
+```{r plot_education_income, fig.cap="Figure 2: Monthly Income by Educational Level"}
+income_by_edu <- data_cleaned %>%
+  filter(!is.na(hh_head_education_level), !is.na(monthly_income), monthly_income > 0) %>%
+  mutate(education_ordered = factor(hh_head_education_level,
+                                   levels = c("No formal education", "JHS", "SHS",
+                                            "Vocational/Technical", "University")))
+
+ggplot(income_by_edu, aes(x = education_ordered, y = monthly_income, fill = education_ordered)) +
+  geom_boxplot(alpha = 0.7, outlier.alpha = 0.3) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, 
+               fill = "white", color = "black") +
+  scale_y_log10(labels = comma_format()) +
+  scale_fill_viridis_d(option = "plasma", guide = "none") +
+  labs(
+    title = "Monthly Income Distribution by Educational Attainment",
+    subtitle = "Diamond markers indicate mean values",
+    x = "Educational Level",
+    y = "Monthly Income (GHS, log scale)"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+##  Waste Disposal Methods by Community
+
+```{r plot_waste_community, fig.width=12, fig.cap="Figure 3: Liquid Waste Disposal Methods by Community"}
+waste_community <- data_cleaned %>%
+  filter(!is.na(community_name), !is.na(liquid_waste_disposal_method),
+         liquid_waste_disposal_method != "MIssing") %>%
+  count(community_name, liquid_waste_disposal_method) %>%
+  group_by(community_name) %>%
+  mutate(percentage = n / sum(n) * 100) %>%
+  ungroup()
+
+ggplot(waste_community, aes(x = reorder(community_name, n, sum), 
+                            y = percentage, 
+                            fill = liquid_waste_disposal_method)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_brewer(palette = "Set2", name = "Disposal Method") +
+  labs(
+    title = "Liquid Waste Disposal Methods Across Communities",
+    subtitle = "Comparison of waste management practices",
+    x = "Community",
+    y = "Percentage (%)"
+  ) +
+  coord_flip() +
+  theme(legend.position = "right")
+```
+
+##  Challenges Frequency
+
+```{r plot_challenges, fig.cap="Figure 4: Frequency of Challenges Experienced by Households"}
+challenges_long <- data_cleaned %>%
+  select(challenge_malaria, challenge_foul_smell, challenge_other_ailments,
+         challenge_flooding, challenge_unsightly_waste) %>%
+  pivot_longer(everything(), names_to = "Challenge", values_to = "Response") %>%
+  filter(Response == "Yes") %>%
+  count(Challenge) %>%
+  mutate(
+    Challenge = str_replace_all(Challenge, "challenge_", "") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title(),
+    Percentage = n / nrow(data_cleaned) * 100
+  )
+
+ggplot(challenges_long, aes(x = reorder(Challenge, Percentage), y = Percentage)) +
+  geom_col(fill = "#e34a33", alpha = 0.8) +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), 
+            hjust = -0.2, fontface = "bold", size = 4) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Prevalence of Challenges in Waterside Communities",
+    subtitle = "Percentage of households experiencing each challenge",
+    x = NULL,
+    y = "Percentage of Households (%)"
+  ) 
+```
+
+#  Advanced Analysis: Multiple Correspondence Analysis
+
+```{r mca_analysis}
+# Prepare data for MCA - select categorical variables
+mca_data <- data_cleaned %>%
+  select(hh_head_sex, hh_head_education_level, has_planning_permit,
+         willing_to_relocate, challenge_flooding, liquid_waste_disposal_method) %>%
+  filter(complete.cases(.),
+         liquid_waste_disposal_method != "MIssing") %>%
+  mutate(across(everything(), as.factor))
+
+# Only run if we have enough data
+if(nrow(mca_data) > 50) {
+  # Perform MCA
+  mca_result <- MCA(mca_data, graph = FALSE)
+  
+  # Eigenvalues table
+  eig_values <- as.data.frame(mca_result$eig) %>%
+    rownames_to_column("Dimension") %>%
+    slice(1:5) %>%
+    mutate(across(where(is.numeric), ~round(., 2)))
+  
+  colnames(eig_values) <- c("Dimension", "Eigenvalue", "% Variance", "Cumulative %")
+  
+  kk(eig_values, caption = "Table 30: MCA Eigenvalues and Variance Explained", 
+     align = c("l", rep("r", 3)))
+}
+```
+
+```{r mca_plot, fig.width=12, fig.height=8, fig.cap="Figure 5: Multiple Correspondence Analysis - Variable Categories"}
+if(exists("mca_result")) {
+  fviz_mca_var(mca_result, 
+               col.var = "contrib",
+               gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+               repel = TRUE,
+               ggtheme = theme_publication()) +
+    labs(title = "MCA Variable Categories Plot",
+         subtitle = "Spatial representation of categorical variable relationships",
+         color = "Contribution")
+}
+```
+
+#  Spatial Analysis by Community
+
+```{r spatial_community}
+# Comprehensive community profile
+community_profile <- data_cleaned %>%
+  filter(!is.na(community_name)) %>%
+  group_by(community_name) %>%
+  summarise(
+    `Total HH` = n(),
+    `% Male HH Head` = round(sum(hh_head_sex == "male", na.rm = TRUE) / 
+                              sum(!is.na(hh_head_sex)) * 100, 1),
+    `Mean Age` = round(mean(hh_head_age, na.rm = TRUE), 1),
+    `% No Formal Edu` = round(sum(hh_head_education_level == "No formal education", 
+                                   na.rm = TRUE) / sum(!is.na(hh_head_education_level)) * 100, 1),
+    `Median Income` = round(median(monthly_income, na.rm = TRUE), 0),
+    `% Islamic` = round(sum(religion == "Islamic", na.rm = TRUE) / 
+                         sum(!is.na(religion)) * 100, 1),
+    `% Owners` = round(sum(resident_status == "owner of the structure", na.rm = TRUE) / 
+                        sum(!is.na(resident_status)) * 100, 1),
+    `Mean Years Lived` = round(mean(years_lived_here, na.rm = TRUE), 1)
+  ) %>%
+  arrange(desc(`Total HH`))
+
+kk(community_profile, caption = "Table 31: Comprehensive Community Socio-Demographic Profile", 
+   align = c("l", rep("r", 8)))
+```
+
+#  Factor Analysis: Reasons for Not Relocating
+
+```{r reasons_norelocation}
+# Analyze reasons for not relocating
+relocation_barriers <- data_cleaned %>%
+  filter(willing_to_relocate == "No") %>%
+  select(no_relocation_high_cost, no_relocation_land_cost, 
+         no_relocation_work_proximity, no_relocation_living_cost,
+         no_relocation_community, no_relocation_family_land) %>%
+  summarise(across(everything(), ~sum(. == "Yes", na.rm = TRUE))) %>%
+  pivot_longer(everything(), names_to = "Barrier", values_to = "Count") %>%
+  mutate(
+    Barrier = str_replace_all(Barrier, "no_relocation_", "") %>%
+      str_replace_all("_", " ") %>%
+      str_to_title(),
+    Percentage = round(Count / sum(data_cleaned$willing_to_relocate == "No", na.rm = TRUE) * 100, 1)
+  ) %>%
+  arrange(desc(Count))
+
+kk(relocation_barriers, caption = "Table 32: Relocation Barriers Among Unwilling Households", 
+   align = c("l", "r", "r"))
+```
+
+```{r plot_barriers, fig.cap="Figure 6: Top Barriers to Relocation"}
+ggplot(relocation_barriers, aes(x = reorder(Barrier, Percentage), y = Percentage)) +
+  geom_col(fill = "#2c7bb6", alpha = 0.8) +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), 
+            hjust = -0.2, fontface = "bold", size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Key Barriers Preventing Relocation",
+    subtitle = "Among households unwilling to relocate",
+    x = NULL,
+    y = "Percentage (%)"
+  ) +
+  theme_publication()
+```
+
+#  Income and Expenditure Analysis
+
+```{r income_expenditure}
+# Income-expenditure relationship
+income_exp_data <- data_cleaned %>%
+  filter(!is.na(monthly_income), !is.na(monthly_expenditure),
+         monthly_income > 0, monthly_expenditure > 0) %>%
+  mutate(
+    savings_rate = (monthly_income - monthly_expenditure) / monthly_income * 100,
+    income_category = case_when(
+      monthly_income < 500 ~ "< 500",
+      monthly_income < 1000 ~ "500-999",
+      monthly_income < 2000 ~ "1000-1999",
+      monthly_income < 3000 ~ "2000-2999",
+      TRUE ~ "3000+"
+    )
+  )
+
+# Summary statistics
+income_exp_summary <- income_exp_data %>%
+  summarise(
+    `Mean Income (GHS)` = round(mean(monthly_income), 2),
+    `Mean Expenditure (GHS)` = round(mean(monthly_expenditure), 2),
+    `Mean Savings Rate (%)` = round(mean(savings_rate, na.rm = TRUE), 1),
+    `Median Savings Rate (%)` = round(median(savings_rate, na.rm = TRUE), 1),
+    `Correlation (Income-Exp)` = round(cor(monthly_income, monthly_expenditure), 3),
+    N = n()
+  ) %>%
+  pivot_longer(everything(), names_to = "Metric", values_to = "Value")
+
+kk(income_exp_summary, caption = "Table 33: Income and Expenditure Analysis", 
+   align = c("l", "r"))
+```
+
+```{r plot_income_expenditure, fig.cap="Figure 7: Income vs Expenditure Relationship"}
+ggplot(income_exp_data, aes(x = monthly_income, y = monthly_expenditure)) +
+  geom_point(alpha = 0.5, color = "#1f78b4", size = 2) +
+  geom_smooth(method = "lm", color = "#e31a1c", se = TRUE, linewidth = 1.2) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = comma_format()) +
+  labs(
+    title = "Household Income versus Expenditure",
+    subtitle = "Dashed line represents income = expenditure; Red line shows actual relationship",
+    x = "Monthly Income (GHS)",
+    y = "Monthly Expenditure (GHS)"
+  ) +
+  theme_publication()
+```
+
+# Settlement Duration Analysis
+
+```{r duration_analysis}
+# Create duration categories
+duration_data <- data_cleaned %>%
+  filter(!is.na(years_lived_here)) %>%
+  mutate(
+    duration_category = case_when(
+      years_lived_here < 1 ~ "< 1 year",
+      years_lived_here < 5 ~ "1-4 years",
+      years_lived_here < 10 ~ "5-9 years",
+      years_lived_here < 20 ~ "10-19 years",
+      TRUE ~ "20+ years"
+    ),
+    duration_category = factor(duration_category, 
+                               levels = c("< 1 year", "1-4 years", "5-9 years", 
+                                        "10-19 years", "20+ years"))
+  )
+
+# Duration distribution
+duration_dist <- duration_data %>%
+  count(duration_category) %>%
+  mutate(Percentage = round(n / sum(n) * 100, 1))
+
+kk(duration_dist, caption = "Table 34: Distribution of Residence Duration", 
+   align = c("l", "r", "r"))
+
+# Duration by planning permit
+duration_permit <- duration_data %>%
+  filter(!is.na(has_planning_permit)) %>%
+  group_by(duration_category, has_planning_permit) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(duration_category) %>%
+  mutate(Percentage = round(n / sum(n) * 100, 1)) %>%
+  pivot_wider(names_from = has_planning_permit, values_from = c(n, Percentage), 
+              values_fill = 0) %>%
+  select(duration_category, n_Yes, Percentage_Yes, n_No, Percentage_No)
+
+colnames(duration_permit) <- c("Duration", "Yes (n)", "Yes (%)", "No (n)", "No (%)")
+
+kk(duration_permit, caption = "Table 35: Planning Permit Status by Residence Duration", 
+   align = c("l", rep("r", 4)))
+```
+
+#  Cross-Tabulations: Key Relationships
+
+```{r crosstabs}
+# Education by Income category
+edu_income_cross <- income_exp_data %>%
+  filter(!is.na(hh_head_education_level)) %>%
+  count(hh_head_education_level, income_category) %>%
+  group_by(hh_head_education_level) %>%
+  mutate(Percentage = round(n / sum(n) * 100, 1)) %>%
+  ungroup() %>%
+  select(hh_head_education_level, income_category, n, Percentage) %>%
+  arrange(hh_head_education_level, desc(income_category))
+
+kk(edu_income_cross, caption = "Table 36: Cross-tabulation of Education Level and Income Category", 
+   align = c("l", "l", "r", "r"))
+
+# Waste disposal by flooding experience
+waste_flood_cross <- data_cleaned %>%
+  filter(!is.na(liquid_waste_disposal_method), 
+         liquid_waste_disposal_method != "MIssing",
+         !is.na(challenge_flooding)) %>%
+  count(liquid_waste_disposal_method, challenge_flooding) %>%
+  group_by(liquid_waste_disposal_method) %>%
+  mutate(Percentage = round(n / sum(n) * 100, 1)) %>%
+  ungroup()
+
+kk(waste_flood_cross, caption = "Table 37: Liquid Waste Disposal Method by Flooding Experience", 
+   align = c("l", "l", "r", "r"))
+```
+
+#  Summary of Key Findings
+
+```{r key_findings}
+key_findings <- data.frame(
+  Finding = c(
+    "Prevalence of flooding challenges",
+    "Households willing to relocate",
+    "Households with planning permits",
+    "Primary reason for settling",
+    "Most common liquid waste disposal",
+    "Households experiencing malaria",
+    "Mean monthly income",
+    "Median years of residence",
+    "Male-headed households",
+    "Islamic religion prevalence"
+  ),
+  Value = c(
+    paste0(round(sum(data_cleaned$challenge_flooding == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$challenge_flooding)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$willing_to_relocate == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$willing_to_relocate)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$has_planning_permit == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$has_planning_permit)) * 100, 1), "%"),
+    names(sort(table(data_cleaned$reason_for_settling), decreasing = TRUE)[1]),
+    names(sort(table(data_cleaned$liquid_waste_disposal_method[
+      data_cleaned$liquid_waste_disposal_method != "MIssing"]), decreasing = TRUE)[1]),
+    paste0(round(sum(data_cleaned$challenge_malaria == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$challenge_malaria)) * 100, 1), "%"),
+    paste0("GHS ", round(mean(data_cleaned$monthly_income, na.rm = TRUE), 0)),
+    paste0(round(median(data_cleaned$years_lived_here, na.rm = TRUE), 1), " years"),
+    paste0(round(sum(data_cleaned$hh_head_sex == "male", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$hh_head_sex)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$religion == "Islamic", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$religion)) * 100, 1), "%")
+  )
+)
+
+kk(key_findings, caption = "Table 38: Summary of Key Research Findings", 
+   align = c("l", "r"))
+```
+
+
+
+
+
+#  Multinomial Logistic Regression: Liquid Waste Disposal Choice
+
+```{r multinomial_waste}
+# Prepare data for multinomial logistic regression
+library(nnet)
+
+waste_model_data <- data_cleaned %>%
+  filter(!is.na(liquid_waste_disposal_method), 
+         liquid_waste_disposal_method != "MIssing",
+         !is.na(hh_head_education_level),
+         !is.na(monthly_income),
+         !is.na(has_planning_permit)) %>%
+  mutate(
+    disposal_method = factor(liquid_waste_disposal_method),
+    education_years = case_when(
+      hh_head_education_level == "No formal education" ~ 0,
+      hh_head_education_level == "JHS" ~ 9,
+      hh_head_education_level == "SHS" ~ 12,
+      hh_head_education_level == "Vocational/Technical" ~ 12,
+      hh_head_education_level == "University" ~ 16
+    ),
+    permit = ifelse(has_planning_permit == "Yes", 1, 0)
+  )
+
+# Set reference category (most common method)
+ref_category <- names(sort(table(waste_model_data$disposal_method), decreasing = TRUE))[1]
+waste_model_data$disposal_method <- relevel(waste_model_data$disposal_method, ref = ref_category)
+
+# Fit multinomial logistic regression
+if(length(unique(waste_model_data$disposal_method)) > 2) {
+  multinom_waste <- multinom(disposal_method ~ education_years + log(monthly_income + 1) + 
+                              permit + challenge_flooding,
+                            data = waste_model_data, trace = FALSE)
+  
+  # Extract and format results
+  multinom_results <- tidy(multinom_waste, exponentiate = TRUE, conf.int = TRUE) %>%
+    mutate(
+      Term = case_when(
+        term == "education_years" ~ "Years of Education",
+        term == "log(monthly_income + 1)" ~ "Log(Income)",
+        term == "permit" ~ "Has Planning Permit",
+        term == "challenge_floodingYes" ~ "Experiences Flooding",
+        TRUE ~ term
+      ),
+      `Relative Risk Ratio` = round(estimate, 3),
+      `95% CI` = paste0("[", round(conf.low, 3), ", ", round(conf.high, 3), "]"),
+      `p-value` = round(p.value, 4),
+      Significance = ifelse(p.value < 0.001, "***",
+                           ifelse(p.value < 0.01, "**",
+                                 ifelse(p.value < 0.05, "*", "ns")))
+    ) %>%
+    select(y.level, Term, `Relative Risk Ratio`, `95% CI`, `p-value`, Significance)
+  
+  kk(multinom_results, 
+     caption = paste0("Table 39: Multinomial Logistic Regression - Liquid Waste Disposal Choice (Reference: ", ref_category, ")"), 
+     align = c("l", "l", "r", "l", "r", "c"))
+}
+```
+
+# Propensity Score Analysis: Planning Permit Impact on Relocation
+
+```{r propensity_score}
+# Propensity score matching to assess permit effect on relocation willingness
+
+
+library(MatchIt)
+
+ps_data <- data_cleaned %>%
+  filter(
+    !is.na(has_planning_permit),
+    !is.na(willing_to_relocate),
+    !is.na(hh_head_age),
+    !is.na(monthly_income),
+    !is.na(years_lived_here)              
+  ) %>%
+  mutate(
+    permit = ifelse(has_planning_permit == "Yes", 1, 0),
+    relocate = ifelse(willing_to_relocate == "Yes", 1, 0)
+  )
+
+# Check sample size before matching
+if (nrow(ps_data) > 50 && sum(ps_data$permit) > 10 && sum(ps_data$permit == 0) > 10) {
+  
+  # Perform matching
+  match_out <- matchit(
+    permit ~ hh_head_age + log(monthly_income + 1) + years_lived_here,
+    data = ps_data,
+    method = "nearest",
+    ratio = 1
+  )
+  
+  # Get matched data
+  matched_data <- match.data(match_out)
+  
+  # Group comparison after matching
+  matched_comparison <- matched_data %>%
+    group_by(permit) %>%
+    summarise(
+      N = n(),
+      `% Willing to Relocate` = round(mean(relocate) * 100, 1),
+      `Mean Age` = round(mean(hh_head_age), 1),
+      `Mean Income` = round(mean(monthly_income), 0),
+      `Mean Years Lived` = round(mean(years_lived_here), 1)
+    ) %>%
+    mutate(permit = ifelse(permit == 1, "Has Permit", "No Permit"))
+  
+  kk(matched_comparison,
+     caption = "Table 40: Propensity Score Matched Comparison - Planning Permit Effect",
+     align = c("l", rep("r", 5)))
+  
+  # t-test for relocation willingness
+  ps_test <- t.test(relocate ~ permit, data = matched_data)
+  
+  ps_test_results <- data.frame(
+    Test = "Two-sample t-test",
+    `Mean Difference` = round(diff(ps_test$estimate), 3),
+    `t-statistic` = round(ps_test$statistic, 3),
+    `p-value` = round(ps_test$p.value, 4),
+    Significance = ifelse(ps_test$p.value < 0.05, "*", "ns")
+  )
+  
+  kk(ps_test_results,
+     caption = "Table 41: Statistical Test of Planning Permit Effect on Relocation (Matched Sample)",
+     align = c("l", "r", "r", "r", "c"))
+}
+
+
+
+
+```
+
+#  Structural Equation Model: Pathways to Space Use
+
+```{r sem_analysis}
+# Conceptual SEM: Income → Permit → Waste Disposal Behavior
+library(lavaan)
+
+sem_data <- data_cleaned %>%
+  filter(!is.na(monthly_income), !is.na(has_planning_permit),
+         !is.na(liquid_waste_disposal_method),
+         liquid_waste_disposal_method != "MIssing") %>%
+  mutate(
+    income_log = log(monthly_income + 1),
+    permit_binary = ifelse(has_planning_permit == "Yes", 1, 0),
+    river_disposal = ifelse(liquid_waste_disposal_method == "In the river", 1, 0),
+    education_years = case_when(
+      hh_head_education_level == "No formal education" ~ 0,
+      hh_head_education_level == "JHS" ~ 9,
+      hh_head_education_level == "SHS" ~ 12,
+      hh_head_education_level == "Vocational/Technical" ~ 12,
+      hh_head_education_level == "University" ~ 16,
+      TRUE ~ 0
+    )
+  )
+
+# Define SEM model
+if(nrow(sem_data) > 100) {
+  sem_model <- '
+    # Direct effects
+    permit_binary ~ a*income_log + b*education_years
+    river_disposal ~ c*permit_binary + d*income_log + e*education_years
+    
+    # Indirect effect
+    indirect := a*c
+    total := c*a + d
+  '
+  
+  # Fit model
+  sem_fit <- sem(sem_model, data = sem_data)
+  
+  # Extract results
+  sem_results <- parameterEstimates(sem_fit, standardized = TRUE) %>%
+    filter(op %in% c("~", ":=")) %>%
+    mutate(
+      Path = paste(lhs, op, rhs),
+      Estimate = round(est, 3),
+      `Std. Estimate` = round(std.all, 3),
+      `p-value` = round(pvalue, 4),
+      Significance = ifelse(pvalue < 0.001, "***",
+                           ifelse(pvalue < 0.01, "**",
+                                 ifelse(pvalue < 0.05, "*", "ns")))
+    ) %>%
+    select(Path, Estimate, `Std. Estimate`, `p-value`, Significance)
+  
+  kk(sem_results, 
+     caption = "Table 42: Structural Equation Model - Pathways to River Waste Disposal", 
+     align = c("l", "r", "r", "r", "c"))
+  
+  # Model fit indices
+  fit_measures <- fitMeasures(sem_fit, c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr"))
+  
+  fit_table <- data.frame(
+    Measure = c("Chi-square", "df", "p-value", "CFI", "TLI", "RMSEA", "SRMR"),
+    Value = round(fit_measures, 3)
+  )
+  
+  kk(fit_table, caption = "Table 43: SEM Model Fit Indices", align = c("l", "r"))
+}
+```
+
+# 21. Hierarchical Clustering: Household Typology
+
+```{r clustering_analysis}
+# Create household typology based on multiple characteristics
+cluster_data <- data_cleaned %>%
+  filter(!is.na(monthly_income), !is.na(years_lived_here),
+         !is.na(hh_head_age), !is.na(hh_head_education_level)) %>%
+  mutate(
+    income_scaled = scale(log(monthly_income + 1))[,1],
+    age_scaled = scale(hh_head_age)[,1],
+    years_scaled = scale(years_lived_here)[,1],
+    education_numeric = case_when(
+      hh_head_education_level == "No formal education" ~ 0,
+      hh_head_education_level == "JHS" ~ 1,
+      hh_head_education_level == "SHS" ~ 2,
+      hh_head_education_level == "Vocational/Technical" ~ 2,
+      hh_head_education_level == "University" ~ 3
+    ),
+    edu_scaled = scale(education_numeric)[,1],
+    permit_num = ifelse(has_planning_permit == "Yes", 1, 0),
+    flood_num = ifelse(challenge_flooding == "Yes", 1, 0)
+  ) %>%
+  select(income_scaled, age_scaled, years_scaled, edu_scaled, permit_num, flood_num) %>%
+  filter(complete.cases(.))
+
+# Perform k-means clustering
+if(nrow(cluster_data) > 50) {
+  set.seed(123)
+  
+  # Determine optimal number of clusters using elbow method
+  wss <- sapply(2:8, function(k) {
+    kmeans(cluster_data, centers = k, nstart = 25)$tot.withinss
+  })
+  
+  # Use 4 clusters (or optimal from elbow)
+  k_optimal <- 4
+  km_result <- kmeans(cluster_data, centers = k_optimal, nstart = 25)
+  
+  # Add cluster assignment back to data
+  cluster_assignment <- data_cleaned %>%
+    filter(!is.na(monthly_income), !is.na(years_lived_here),
+           !is.na(hh_head_age), !is.na(hh_head_education_level)) %>%
+    mutate(cluster_num = NA_real_)
+  
+  cluster_rows <- complete.cases(cluster_data)
+  cluster_assignment$cluster_num[cluster_rows] <- km_result$cluster
+  
+  # Profile each cluster
+  cluster_profile <- cluster_assignment %>%
+    filter(!is.na(cluster_num)) %>%
+    group_by(cluster_num) %>%
+    summarise(
+      N = n(),
+      `Mean Income` = round(mean(monthly_income, na.rm = TRUE), 0),
+      `Mean Age` = round(mean(hh_head_age, na.rm = TRUE), 1),
+      `Mean Years` = round(mean(years_lived_here, na.rm = TRUE), 1),
+      `% With Permit` = round(sum(has_planning_permit == "Yes", na.rm = TRUE) / 
+                               sum(!is.na(has_planning_permit)) * 100, 1),
+      `% Experience Flood` = round(sum(challenge_flooding == "Yes", na.rm = TRUE) / 
+                                    sum(!is.na(challenge_flooding)) * 100, 1),
+      `% Willing Relocate` = round(sum(willing_to_relocate == "Yes", na.rm = TRUE) / 
+                                    sum(!is.na(willing_to_relocate)) * 100, 1)
+    ) %>%
+    mutate(Cluster = paste("Cluster", cluster_num)) %>%
+    select(Cluster, everything(), -cluster_num)
+  
+  kk(cluster_profile, caption = "Table 44: Household Typology - Cluster Profiles", 
+     align = c("l", rep("r", 7)))
+}
+```
+
+```{r plot_clusters, fig.width=12, fig.height=8, fig.cap="Figure 8: Household Clusters - Income vs Years Lived"}
+if(exists("cluster_assignment") && sum(!is.na(cluster_assignment$cluster_num)) > 0) {
+  
+  plot_cluster_data <- cluster_assignment %>%
+    filter(!is.na(cluster_num))
+  
+  ggplot(plot_cluster_data, aes(x = years_lived_here, y = monthly_income, 
+                                 color = factor(cluster_num))) +
+    geom_point(alpha = 0.6, size = 3) +
+    scale_y_log10(labels = comma_format()) +
+    scale_color_viridis_d(name = "Cluster", option = "turbo") +
+    labs(
+      title = "Household Typology: Income and Residence Duration",
+      subtitle = "K-means clustering reveals distinct household segments",
+      x = "Years Lived in Current Location",
+      y = "Monthly Income (GHS, log scale)"
+    ) 
+}
+```
+
+# Spatial Autocorrelation: Community-Level Patterns
+
+```{r spatial_autocorrelation}
+# Test for spatial clustering of behaviors across communities
+community_spatial <- data_cleaned %>%
+  filter(!is.na(community_name)) %>%
+  group_by(community_name) %>%
+  summarise(
+    n = n(),
+    river_disposal_rate = mean(liquid_waste_disposal_method == "In the river", na.rm = TRUE),
+    flooding_rate = mean(challenge_flooding == "Yes", na.rm = TRUE),
+    relocation_rate = mean(willing_to_relocate == "Yes", na.rm = TRUE),
+    permit_rate = mean(has_planning_permit == "Yes", na.rm = TRUE),
+    mean_income = mean(monthly_income, na.rm = TRUE),
+    mean_lat = mean(latitude, na.rm = TRUE),
+    mean_lon = mean(longitude, na.rm = TRUE)
+  ) %>%
+  filter(n >= 10, !is.na(mean_lat), !is.na(mean_lon))
+
+kk(community_spatial %>% select(-mean_lat, -mean_lon), 
+   caption = "Table 45: Community-Level Aggregated Indicators", 
+   align = c("l", rep("r", 6)))
+```
+
+#  Mediation Analysis: Income → Permit → Relocation
+
+```{r mediation_analysis}
+# Test if planning permit mediates relationship between income and relocation
+library(mediation)
+
+mediation_data <- data_cleaned %>%
+  filter(!is.na(monthly_income), !is.na(has_planning_permit),
+         !is.na(willing_to_relocate), monthly_income > 0) %>%
+  mutate(
+    income_log = log(monthly_income),
+    permit_num = ifelse(has_planning_permit == "Yes", 1, 0),
+    relocate_num = ifelse(willing_to_relocate == "Yes", 1, 0)
+  )
+
+if(nrow(mediation_data) > 50) {
+  # Mediator model (Income → Permit)
+  med_model <- glm(permit_num ~ income_log + hh_head_age, 
+                   data = mediation_data, family = binomial)
+  
+  # Outcome model (Income + Permit → Relocation)
+  out_model <- glm(relocate_num ~ income_log + permit_num + hh_head_age,
+                   data = mediation_data, family = binomial)
+  
+  # Mediation analysis
+  set.seed(123)
+  med_results <- mediate(med_model, out_model, treat = "income_log", 
+                        mediator = "permit_num", boot = TRUE, sims = 500)
+  
+  # Format results
+  mediation_summary <- data.frame(
+    Effect = c("ACME (Average Causal Mediation Effect)", 
+               "ADE (Average Direct Effect)", 
+               "Total Effect", 
+               "Proportion Mediated"),
+    Estimate = c(med_results$d0, med_results$z0, med_results$tau.coef, med_results$n0),
+    `95% CI Lower` = c(med_results$d0.ci[1], med_results$z0.ci[1], 
+                       med_results$tau.ci[1], med_results$n0.ci[1]),
+    `95% CI Upper` = c(med_results$d0.ci[2], med_results$z0.ci[2], 
+                       med_results$tau.ci[2], med_results$n0.ci[2]),
+    `p-value` = c(med_results$d0.p, med_results$z0.p, 
+                  med_results$tau.p, med_results$n0.p)
+  ) %>%
+    mutate(across(where(is.numeric), ~round(., 4)))
+  
+  kk(mediation_summary, 
+     caption = "Table 46: Mediation Analysis - Planning Permit as Mediator (Income → Relocation)", 
+     align = c("l", rep("r", 4)))
+}
+```
+
+# 24. Survival Analysis: Time to Relocation Decision
+
+```{r survival_analysis}
+# Analyze time until willingness to relocate emerges
+library(survival)
+library(survminer)
+
+survival_data <- data_cleaned %>%
+  filter(!is.na(years_lived_here), !is.na(willing_to_relocate)) %>%
+  mutate(
+    event = ifelse(willing_to_relocate == "Yes", 1, 0),
+    time = years_lived_here,
+    flood = ifelse(challenge_flooding == "Yes", 1, 0)
+  )
+
+if(nrow(survival_data) > 50 && sum(survival_data$event) > 5) {
+  # Fit Cox proportional hazards model
+  cox_model <- coxph(Surv(time, event) ~ hh_head_age + log(monthly_income + 1) + 
+                      flood + has_planning_permit,
+                    data = survival_data)
+  
+  # Format results
+  cox_results <- tidy(cox_model, exponentiate = TRUE, conf.int = TRUE) %>%
+    mutate(
+      Term = case_when(
+        term == "hh_head_age" ~ "HH Head Age",
+        term == "log(monthly_income + 1)" ~ "Log(Income)",
+        term == "flood" ~ "Experiences Flooding",
+        term == "has_planning_permitYes" ~ "Has Planning Permit",
+        TRUE ~ term
+      ),
+      `Hazard Ratio` = round(estimate, 3),
+      `95% CI` = paste0("[", round(conf.low, 3), ", ", round(conf.high, 3), "]"),
+      `p-value` = round(p.value, 4),
+      Significance = ifelse(p.value < 0.001, "***",
+                           ifelse(p.value < 0.01, "**",
+                                 ifelse(p.value < 0.05, "*", "ns")))
+    ) %>%
+    select(Term, `Hazard Ratio`, `95% CI`, `p-value`, Significance)
+  
+  kk(cox_results, 
+     caption = "Table 47: Cox Proportional Hazards Model - Factors Associated with Relocation Willingness Over Time", 
+     align = c("l", "r", "l", "r", "c"))
+  
+  # Model summary statistics
+  cox_summary <- data.frame(
+    Metric = c("Concordance", "Log-likelihood", "Wald test p-value", "N"),
+    Value = c(
+      round(summary(cox_model)$concordance[1], 3),
+      round(summary(cox_model)$loglik[2], 2),
+      format.pval(summary(cox_model)$waldtest[3], digits = 4),
+      cox_model$n
+    )
+  )
+  
+  kk(cox_summary, caption = "Table 48: Cox Model Fit Statistics", align = c("l", "r"))
+}
+```
+
+#  Network Analysis: Co-occurrence of Benefits and Challenges
+
+```{r network_analysis}
+# Analyze which benefits and challenges co-occur
+library(igraph)
+
+# Create co-occurrence matrix for challenges
+challenges_matrix <- data_cleaned %>%
+  select(challenge_malaria, challenge_foul_smell, challenge_other_ailments,
+         challenge_flooding, challenge_unsightly_waste) %>%
+  mutate(across(everything(), ~ifelse(. == "Yes", 1, 0))) %>%
+  filter(complete.cases(.))
+
+if(nrow(challenges_matrix) > 20) {
+  # Calculate correlation between challenges
+  challenge_cor <- cor(challenges_matrix)
+  
+  # Create network table
+  challenge_network <- as.data.frame(challenge_cor) %>%
+    rownames_to_column("Challenge_1") %>%
+    pivot_longer(-Challenge_1, names_to = "Challenge_2", values_to = "Correlation") %>%
+    filter(Challenge_1 < Challenge_2, Correlation > 0.3) %>%
+    mutate(
+      Challenge_1 = str_replace_all(Challenge_1, "challenge_", "") %>%
+        str_replace_all("_", " ") %>% str_to_title(),
+      Challenge_2 = str_replace_all(Challenge_2, "challenge_", "") %>%
+        str_replace_all("_", " ") %>% str_to_title(),
+      Correlation = round(Correlation, 3)
+    ) %>%
+    arrange(desc(Correlation))
+  
+  kk(challenge_network, 
+     caption = "Table 49: Co-occurrence of Challenges (Correlation > 0.3)", 
+     align = c("l", "l", "r"))
+}
+```
+
+# 26. Inequality Analysis: Income Distribution Metrics
+
+```{r inequality_analysis}
+# Calculate income inequality metrics
+income_data <- data_cleaned %>%
+  filter(!is.na(monthly_income), monthly_income > 0)
+
+if(nrow(income_data) > 20) {
+  # Calculate Gini coefficient
+  gini_coef <- function(x) {
+    x <- sort(x)
+    n <- length(x)
+    2 * sum((1:n) * x) / (n * sum(x)) - (n + 1) / n
+  }
+  
+  # Calculate percentiles
+  income_percentiles <- quantile(income_data$monthly_income, 
+                                 probs = c(0.1, 0.25, 0.5, 0.75, 0.9))
+  
+  # Income distribution summary
+  inequality_metrics <- data.frame(
+    Metric = c("Gini Coefficient", "10th Percentile", "25th Percentile (Q1)", 
+               "Median (Q2)", "75th Percentile (Q3)", "90th Percentile",
+               "Income Ratio (90th/10th)", "Income Ratio (75th/25th)"),
+    Value = c(
+      round(gini_coef(income_data$monthly_income), 3),
+      round(income_percentiles[1], 0),
+      round(income_percentiles[2], 0),
+      round(income_percentiles[3], 0),
+      round(income_percentiles[4], 0),
+      round(income_percentiles[5], 0),
+      round(income_percentiles[5] / income_percentiles[1], 2),
+      round(income_percentiles[4] / income_percentiles[2], 2)
+    )
+  )
+  
+  kk(inequality_metrics, caption = "Table 50: Income Inequality Metrics", 
+     align = c("l", "r"))
+  
+  # Income inequality by community
+  community_gini <- data_cleaned %>%
+    filter(!is.na(community_name), !is.na(monthly_income), monthly_income > 0) %>%
+    group_by(community_name) %>%
+    filter(n() >= 15) %>%
+    summarise(
+      N = n(),
+      `Median Income` = round(median(monthly_income), 0),
+      `Gini Coefficient` = round(gini_coef(monthly_income), 3),
+      `90/10 Ratio` = round(quantile(monthly_income, 0.9) / 
+                             quantile(monthly_income, 0.1), 2)
+    ) %>%
+    arrange(desc(`Gini Coefficient`))
+  
+  kk(community_gini, caption = "Table 51: Income Inequality by Community", 
+     align = c("l", rep("r", 4)))
+}
+```
+
+```{r plot_lorenz, fig.cap="Figure 9: Lorenz Curve - Income Distribution"}
+if(exists("income_data") && nrow(income_data) > 20) {
+  # Create Lorenz curve data
+  income_sorted <- sort(income_data$monthly_income)
+  n <- length(income_sorted)
+  lorenz_data <- data.frame(
+    cum_pop = seq(0, 100, length.out = n),
+    cum_income = cumsum(income_sorted) / sum(income_sorted) * 100
+  )
+  
+  ggplot(lorenz_data, aes(x = cum_pop, y = cum_income)) +
+    geom_line(color = "#d73027", linewidth = 1.2) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
+    annotate("text", x = 70, y = 30, 
+             label = paste0("Gini = ", round(gini_coef(income_data$monthly_income), 3)),
+             size = 5, fontface = "bold") +
+    labs(
+      title = "Lorenz Curve: Income Distribution Among Waterside Households",
+      subtitle = "Dashed line represents perfect equality",
+      x = "Cumulative % of Households",
+      y = "Cumulative % of Income"
+    ) +
+    theme_publication()
+}
+```
+
+# 27. Sensitivity Analysis: Robustness of Key Findings
+
+```{r sensitivity_analysis}
+# Test robustness of relocation willingness predictors
+sensitivity_models <- list()
+
+# Model 1: Base model
+model_base <- data_cleaned %>%
+  filter(!is.na(willing_to_relocate), !is.na(challenge_flooding),
+         !is.na(monthly_income), monthly_income > 0) %>%
+  mutate(relocate = ifelse(willing_to_relocate == "Yes", 1, 0),
+         flood = ifelse(challenge_flooding == "Yes", 1, 0))
+
+if(nrow(model_base) > 50) {
+  # Different model specifications
+  sens1 <- glm(relocate ~ flood, data = model_base, family = binomial)
+  sens2 <- glm(relocate ~ flood + log(monthly_income), data = model_base, family = binomial)
+  sens3 <- glm(relocate ~ flood + log(monthly_income) + hh_head_age, 
+              data = model_base, family = binomial)
+  sens4 <- glm(relocate ~ flood + log(monthly_income) + hh_head_age + years_lived_here,
+              data = model_base, family = binomial)
+  
+  # Extract flooding coefficient from each model
+  sensitivity_results <- data.frame(
+    Model = c("M1: Flood only", "M2: + Income", "M3: + Age", "M4: + Years lived"),
+    `Flood Coef` = c(
+      coef(sens1)["flood"],
+      coef(sens2)["flood"],
+      coef(sens3)["flood"],
+      coef(sens4)["flood"]
+    ),
+    `Flood OR` = c(
+      exp(coef(sens1)["flood"]),
+      exp(coef(sens2)["flood"]),
+      exp(coef(sens3)["flood"]),
+      exp(coef(sens4)["flood"])
+    ),
+    AIC = c(AIC(sens1), AIC(sens2), AIC(sens3), AIC(sens4))
+  ) %>%
+    mutate(across(where(is.numeric), ~round(., 3)))
+  
+  kk(sensitivity_results, 
+     caption = "Table 52: Sensitivity Analysis - Flooding Effect on Relocation Across Model Specifications", 
+     align = c("l", rep("r", 3)))
+}
+```
+
+# 28. Comparative Analysis: Communities by Water Body Proximity
+
+```{r proximity_analysis}
+# Compare Aboabo and Ahinsan
+community_compare <- data_cleaned %>%
+  filter(community_name %in% c("Aboabo", "Ahinsan")) %>%
+  group_by(community_name) %>%
+  summarise(
+    N = n(),
+    `Mean Income` = round(mean(monthly_income, na.rm = TRUE), 0),
+    `% River Disposal` = round(sum(liquid_waste_disposal_method == "In the river", 
+                                    na.rm = TRUE) / sum(!is.na(liquid_waste_disposal_method)) * 100, 1),
+    `% With Permit` = round(sum(has_planning_permit == "Yes", na.rm = TRUE) / 
+                             sum(!is.na(has_planning_permit)) * 100, 1),
+    `% Flooding` = round(sum(challenge_flooding == "Yes", na.rm = TRUE) / 
+                          sum(!is.na(challenge_flooding)) * 100, 1),
+    `% Malaria` = round(sum(challenge_malaria == "Yes", na.rm = TRUE) / 
+                         sum(!is.na(challenge_malaria)) * 100, 1),
+    `% Willing Relocate` = round(sum(willing_to_relocate == "Yes", na.rm = TRUE) / 
+                                  sum(!is.na(willing_to_relocate)) * 100, 1),
+    `Mean Years Lived` = round(mean(years_lived_here, na.rm = TRUE), 1)
+  )
+
+kk(community_compare, caption = "Table 53: Detailed Comparison of Aboabo and Ahinsan", 
+   align = c("l", rep("r", 8)))
+
+# Statistical test of differences
+if(nrow(community_compare) == 2) {
+  # Test key differences
+  test_data <- data_cleaned %>%
+    filter(community_name %in% c("Aboabo", "Ahinsan"))
+  
+  # Chi-square tests
+  flood_test <- if(sum(table(test_data$community_name, test_data$challenge_flooding)) > 0) {
+    chisq.test(table(test_data$community_name, test_data$challenge_flooding))
+  } else { NULL }
+  
+  permit_test <- if(sum(table(test_data$community_name, test_data$has_planning_permit)) > 0) {
+    chisq.test(table(test_data$community_name, test_data$has_planning_permit))
+  } else { NULL }
+  
+  # T-test for income
+  income_test <- t.test(monthly_income ~ community_name, data = test_data)
+  
+  community_tests <- data.frame(
+    Variable = c("Monthly Income", "Flooding Experience", "Planning Permit"),
+    `Test Type` = c("t-test", "Chi-square", "Chi-square"),
+    Statistic = c(
+      round(income_test$statistic, 3),
+      if(!is.null(flood_test)) round(flood_test$statistic, 3) else NA,
+      if(!is.null(permit_test)) round(permit_test$statistic, 3) else NA
+    ),
+    `p-value` = c(
+      round(income_test$p.value, 4),
+      if(!is.null(flood_test)) round(flood_test$p.value, 4) else NA,
+      if(!is.null(permit_test)) round(permit_test$p.value, 4) else NA
+    ),
+    Significance = c(
+      ifelse(income_test$p.value < 0.05, "*", "ns"),
+      if(!is.null(flood_test)) ifelse(flood_test$p.value < 0.05, "*", "ns") else NA,
+      if(!is.null(permit_test)) ifelse(permit_test$p.value < 0.05, "*", "ns") else NA
+    )
+  )
+  
+  kk(community_tests, caption = "Table 54: Statistical Tests - Aboabo vs Ahinsan Differences", 
+     align = c("l", "l", "r", "r", "c"))
+}
+```
+
+# 29. Interaction Effects: Education × Income on Waste Disposal
+
+```{r interaction_effects}
+# Test interaction between education and income
+interaction_data <- data_cleaned %>%
+  filter(!is.na(liquid_waste_disposal_method), 
+         liquid_waste_disposal_method != "MIssing",
+         !is.na(monthly_income), monthly_income > 0,
+         !is.na(hh_head_education_level)) %>%
+  mutate(
+    river_disposal = ifelse(liquid_waste_disposal_method == "In the river", 1, 0),
+    log_income = log(monthly_income),
+    high_education = ifelse(hh_head_education_level %in% 
+                             c("SHS", "Vocational/Technical", "University"), 1, 0)
+  )
+
+if(nrow(interaction_data) > 50) {
+  # Model with interaction
+  interaction_model <- glm(river_disposal ~ log_income * high_education + hh_head_age,
+                          data = interaction_data, family = binomial)
+  
+  # Format results
+  interaction_results <- tidy(interaction_model, exponentiate = TRUE, conf.int = TRUE) %>%
+    mutate(
+      Term = case_when(
+        term == "log_income" ~ "Log(Income)",
+        term == "high_education" ~ "Higher Education",
+        term == "log_income:high_education" ~ "Income × Education",
+        term == "hh_head_age" ~ "HH Head Age",
+        TRUE ~ term
+      ),
+      `Odds Ratio` = round(estimate, 3),
+      `95% CI` = paste0("[", round(conf.low, 3), ", ", round(conf.high, 3), "]"),
+      `p-value` = round(p.value, 4),
+      Significance = ifelse(p.value < 0.001, "***",
+                           ifelse(p.value < 0.01, "**",
+                                 ifelse(p.value < 0.05, "*", "ns")))
+    ) %>%
+    select(Term, `Odds Ratio`, `95% CI`, `p-value`, Significance)
+  
+  kk(interaction_results, 
+     caption = "Table 55: Interaction Effects - Education × Income on River Waste Disposal", 
+     align = c("l", "r", "l", "r", "c"))
+}
+```
+
+```{r plot_interaction, fig.cap="Figure 10: Interaction Effect - Income and Education on River Disposal"}
+if(exists("interaction_data") && nrow(interaction_data) > 50) {
+  
+  # Create predicted probabilities for visualization
+  interaction_plot_data <- interaction_data %>%
+    mutate(Education = ifelse(high_education == 1, "Higher Education", "Basic/No Education"))
+  
+  ggplot(interaction_plot_data, aes(x = monthly_income, y = river_disposal, 
+                                     color = Education)) +
+    geom_jitter(alpha = 0.3, height = 0.02, width = 0) +
+    geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+                se = TRUE, linewidth = 1.2) +
+    scale_x_log10(labels = comma_format()) +
+    scale_color_manual(values = c("#e41a1c", "#377eb8")) +
+    labs(
+      title = "River Waste Disposal by Income and Education",
+      subtitle = "Interaction effect between income and educational attainment",
+      x = "Monthly Income (GHS, log scale)",
+      y = "Probability of River Disposal"
+    ) 
+}
+```
+
+#  Ordinal Regression: Years of Residence Categories
+
+```{r ordinal_regression}
+# Ordinal logistic regression for residence duration categories
+library(MASS)
+
+ordinal_data <- data_cleaned %>%
+  filter(
+    !is.na(years_lived_here),
+    !is.na(monthly_income),
+    !is.na(hh_head_education_level),
+    !is.na(hh_head_age),
+    monthly_income > 0
+  ) %>%
+  mutate(
+    duration_cat = case_when(
+      years_lived_here < 5 ~ "Short (<5 years)",
+      years_lived_here < 15 ~ "Medium (5-14 years)",
+      TRUE ~ "Long (15+ years)"
+    ),
+    duration_cat = factor(duration_cat,
+                          levels = c("Short (<5 years)", "Medium (5-14 years)", "Long (15+ years)"),
+                          ordered = TRUE),
+    education_years = case_when(
+      hh_head_education_level == "No formal education" ~ 0,
+      hh_head_education_level == "JHS" ~ 9,
+      hh_head_education_level == "SHS" ~ 12,
+      hh_head_education_level == "Vocational/Technical" ~ 12,
+      hh_head_education_level == "University" ~ 16
+    )
+  )
+
+
+if (nrow(ordinal_data) > 50) {
+  ordinal_model <- polr(
+    duration_cat ~ log(monthly_income) + education_years + hh_head_age,
+    data = ordinal_data,
+    Hess = TRUE
+  )
+
+  ordinal_results <- broom::tidy(ordinal_model, exponentiate = TRUE, conf.int = TRUE, p.values = TRUE) %>%
+    mutate(
+      Term = case_when(
+        term == "log(monthly_income)" ~ "Log(Income)",
+        term == "education_years" ~ "Years of Education",
+        term == "hh_head_age" ~ "HH Head Age",
+        TRUE ~ term
+      ),
+      `Odds Ratio` = round(estimate, 3),
+      `95% CI` = paste0("[", round(conf.low, 3), ", ", round(conf.high, 3), "]"),
+      `p-value` = round(p.value, 4),
+      Significance = ifelse(p.value < 0.001, "***",
+                            ifelse(p.value < 0.01, "**",
+                                   ifelse(p.value < 0.05, "*", "ns")))
+    ) %>%
+    select(Term, `Odds Ratio`, `95% CI`, `p-value`, Significance)
+
+  kk(ordinal_results,
+     caption = "Table 56: Ordinal Logistic Regression - Predictors of Residence Duration",
+     align = c("l", "r", "l", "r", "c"))
+}
+
+
+```
+
+# 31. Composite Vulnerability Index
+
+```{r vulnerability_index}
+# Create a composite vulnerability index based on multiple factors
+vulnerability_data <- data_cleaned %>%
+  mutate(
+    # Component 1: Economic vulnerability (low income)
+    econ_vuln = ifelse(!is.na(monthly_income) & monthly_income < 
+                        median(monthly_income, na.rm = TRUE), 1, 0),
+    
+    # Component 2: Environmental vulnerability (flooding)
+    env_vuln = ifelse(challenge_flooding == "Yes", 1, 0),
+    
+    # Component 3: Health vulnerability (malaria + other ailments)
+    health_vuln = ifelse((challenge_malaria == "Yes" | 
+                          challenge_other_ailments == "Yes"), 1, 0),
+    
+    # Component 4: Regulatory vulnerability (no permit)
+    reg_vuln = ifelse(has_planning_permit == "No", 1, 0),
+    
+    # Component 5: Behavioral vulnerability (river waste disposal)
+    behav_vuln = ifelse(liquid_waste_disposal_method == "In the river", 1, 0),
+    
+    # Composite index (sum of components)
+    vulnerability_index = econ_vuln + env_vuln + health_vuln + reg_vuln + behav_vuln
+  ) %>%
+  filter(!is.na(vulnerability_index))
+
+# Distribution of vulnerability index
+vuln_distribution <- vulnerability_data %>%
+  count(vulnerability_index) %>%
+  mutate(
+    Percentage = round(n / sum(n) * 100, 1),
+    `Vulnerability Level` = case_when(
+      vulnerability_index <= 1 ~ "Low",
+      vulnerability_index <= 3 ~ "Moderate",
+      TRUE ~ "High"
+    )
+  )
+
+kk(vuln_distribution, 
+   caption = "Table 57: Distribution of Composite Vulnerability Index (0-5 scale)", 
+   align = c("r", "r", "r", "l"))
+
+# Vulnerability by community
+vuln_community <- vulnerability_data %>%
+  filter(!is.na(community_name)) %>%
+  group_by(community_name) %>%
+  summarise(
+    N = n(),
+    `Mean Vuln. Index` = round(mean(vulnerability_index), 2),
+    `% High Vuln. (4-5)` = round(sum(vulnerability_index >= 4) / n() * 100, 1),
+    `% Low Vuln. (0-1)` = round(sum(vulnerability_index <= 1) / n() * 100, 1)
+  ) %>%
+  arrange(desc(`Mean Vuln. Index`))
+
+kk(vuln_community, caption = "Table 58: Vulnerability Index by Community", 
+   align = c("l", rep("r", 4)))
+```
+
+```{r plot_vulnerability, fig.cap="Figure 11: Distribution of Composite Vulnerability Index"}
+ggplot(vulnerability_data, aes(x = vulnerability_index)) +
+  geom_bar(fill = "purple", alpha = 0.8, color = "black", linewidth = 0.3) +
+  geom_text(stat = "count", aes(label = after_stat(count)), vjust = -0.5, 
+            fontface = "bold", size = 4) +
+  scale_x_continuous(breaks = 0:5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Composite Vulnerability Index Distribution",
+    subtitle = "Based on economic, environmental, health, regulatory, and behavioral factors",
+    x = "Vulnerability Index (0 = Low, 5 = High)",
+    y = "Number of Households"
+  ) 
+```
+
+#  Policy Implications Matrix
+
+```{r policy_matrix}
+# Identify priority intervention areas
+policy_priorities <- data_cleaned %>%
+  summarise(
+    `High Priority - Flooding Control` = paste0(
+      round(sum(challenge_flooding == "Yes", na.rm = TRUE) / 
+              sum(!is.na(challenge_flooding)) * 100, 1), 
+      "% affected"),
+    
+    `Medium Priority - Malaria Prevention` = paste0(
+      round(sum(challenge_malaria == "Yes", na.rm = TRUE) / 
+              sum(!is.na(challenge_malaria)) * 100, 1), 
+      "% affected"),
+    
+    `High Priority - Waste Management` = paste0(
+      round(sum(liquid_waste_disposal_method == "In the river", na.rm = TRUE) / 
+              sum(!is.na(liquid_waste_disposal_method)) * 100, 1), 
+      "% use river"),
+    
+    `Medium Priority - Planning Permits` = paste0(
+      round(sum(has_planning_permit == "No", na.rm = TRUE) / 
+              sum(!is.na(has_planning_permit)) * 100, 1), 
+      "% without permit"),
+    
+    `Low Priority - Relocation Support` = paste0(
+      round(sum(willing_to_relocate == "Yes", na.rm = TRUE) / 
+              sum(!is.na(willing_to_relocate)) * 100, 1), 
+      "% willing to relocate")
+  ) %>%
+  pivot_longer(everything(), names_to = "Policy Area", values_to = "Current Status")
+
+kk(policy_priorities, caption = "Table 59: Priority Policy Intervention Areas", 
+   align = c("l", "r"))
+```
+
+# Predictive Model: Risk of River Waste Disposal
+
+```{r predictive_model}
+# Build comprehensive predictive model for river waste disposal
+library(caret)
+
+predict_data <- data_cleaned %>%
+  filter(!is.na(liquid_waste_disposal_method),
+         liquid_waste_disposal_method != "MIssing") %>%
+  mutate(
+    river_disposal = ifelse(liquid_waste_disposal_method == "In the river", "Yes", "No"),
+    river_disposal = factor(river_disposal),
+    income_log = log(monthly_income + 1),
+    education_numeric = case_when(
+      hh_head_education_level == "No formal education" ~ 0,
+      hh_head_education_level == "JHS" ~ 1,
+      hh_head_education_level == "SHS" ~ 2,
+      hh_head_education_level == "Vocational/Technical" ~ 2,
+      hh_head_education_level == "University" ~ 3,
+      TRUE ~ 0
+    ),
+    permit = ifelse(has_planning_permit == "Yes", 1, 0)
+  ) %>%
+  select(river_disposal, income_log, education_numeric, hh_head_age, 
+         years_lived_here, permit) %>%
+  filter(complete.cases(.))
+
+if(nrow(predict_data) > 100) {
+  set.seed(123)
+  
+  # Split data
+  train_index <- createDataPartition(predict_data$river_disposal, p = 0.7, list = FALSE)
+  train_data <- predict_data[train_index, ]
+  test_data <- predict_data[-train_index, ]
+  
+  # Train logistic regression model
+  model_predict <- glm(river_disposal ~ ., data = train_data, family = binomial)
+  
+  # Make predictions
+  predictions <- predict(model_predict, newdata = test_data, type = "response")
+  pred_class <- ifelse(predictions > 0.5, "Yes", "No")
+  
+  # Confusion matrix
+  conf_matrix <- table(Predicted = pred_class, Actual = test_data$river_disposal)
+  
+  # Calculate metrics
+  accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+  sensitivity <- conf_matrix[2,2] / sum(conf_matrix[,2])
+  specificity <- conf_matrix[1,1] / sum(conf_matrix[,1])
+  
+  model_performance <- data.frame(
+    Metric = c("Accuracy", "Sensitivity (True Positive Rate)", 
+               "Specificity (True Negative Rate)", "Training Set Size", "Test Set Size"),
+    Value = c(
+      round(accuracy, 3),
+      round(sensitivity, 3),
+      round(specificity, 3),
+      nrow(train_data),
+      nrow(test_data)
+    )
+  )
+  
+  kk(model_performance, 
+     caption = "Table 60: Predictive Model Performance - River Waste Disposal Risk", 
+     align = c("l", "r"))
+  
+  # Confusion matrix as table
+  conf_matrix_df <- as.data.frame.matrix(conf_matrix) %>%
+    rownames_to_column("Predicted")
+  
+  kk(conf_matrix_df, caption = "Table 61: Confusion Matrix - Predictive Model", 
+     align = c("l", "r", "r"))
+}
+```
+
+# 34. Thematic Analysis: Qualitative Reasons Summary
+
+```{r thematic_summary}
+# Analyze open-ended responses about relocation
+relocation_reasons_yes <- data_cleaned %>%
+  filter(!is.na(relocation_reason_yes)) %>%
+  mutate(
+    theme = case_when(
+      str_detect(tolower(relocation_reason_yes), "flood") ~ "Flooding concerns",
+      str_detect(tolower(relocation_reason_yes), "health|malaria|sick") ~ "Health concerns",
+      str_detect(tolower(relocation_reason_yes), "work|money|business") ~ "Economic reasons",
+      str_detect(tolower(relocation_reason_yes), "home|hometown") ~ "Return to hometown",
+      str_detect(tolower(relocation_reason_yes), "safe|theft|steal") ~ "Safety concerns",
+      str_detect(tolower(relocation_reason_yes), "dirty|smell|clean") ~ "Environmental quality",
+      TRUE ~ "Other reasons"
+    )
+  )
+
+relocation_themes <- relocation_reasons_yes %>%
+  count(theme) %>%
+  mutate(Percentage = round(n / sum(n) * 100, 1)) %>%
+  arrange(desc(n))
+
+kk(relocation_themes, 
+   caption = "Table 62: Thematic Analysis - Reasons for Willingness to Relocate", 
+   align = c("l", "r", "r"))
+
+# Additional comments themes
+if(sum(!is.na(data_cleaned$additional_comments)) > 20) {
+  comments_data <- data_cleaned %>%
+    filter(!is.na(additional_comments), additional_comments != "None", 
+           additional_comments != "No") %>%
+    mutate(
+      comment_theme = case_when(
+        str_detect(tolower(additional_comments), "flood") ~ "Flooding issues",
+        str_detect(tolower(additional_comments), "theft|steal|robbery") ~ "Security issues",
+        str_detect(tolower(additional_comments), "smell|dirty|waste|pollution") ~ "Sanitation issues",
+        str_detect(tolower(additional_comments), "government|help|aid") ~ "Need for government intervention",
+        str_detect(tolower(additional_comments), "good|nice|ok|comfortable") ~ "Positive sentiments",
+        str_detect(tolower(additional_comments), "business") ~ "Business-related",
+        TRUE ~ "Other concerns"
+      )
+    )
+  
+  comment_themes <- comments_data %>%
+    count(comment_theme) %>%
+    mutate(Percentage = round(n / sum(n) * 100, 1)) %>%
+    arrange(desc(n))
+  
+  kk(comment_themes, 
+     caption = "Table 63: Thematic Analysis - Additional Comments from Respondents", 
+     align = c("l", "r", "r"))
+}
+```
+
+#  Final Comprehensive Summary Table
+
+```{r final_summary}
+# Create a comprehensive summary table of all key findings
+final_summary <- data.frame(
+  Category = c(
+    "Socio-Demographics", "", "", "",
+    "Economic Status", "", "",
+    "Residential Characteristics", "", "",
+    "Waste Management", "", "",
+    "Environmental Challenges", "", "",
+    "Regulatory Compliance", "",
+    "Relocation Dynamics", ""
+  ),
+  Indicator = c(
+    "Male-headed households",
+    "Mean age of HH head",
+    "No formal education",
+    "Islamic religion",
+    "Mean monthly income",
+    "Median monthly income",
+    "Gini coefficient",
+    "Owners (vs renters)",
+    "Median years lived",
+    "Proximity to workplace (primary reason)",
+    "Liquid waste to river",
+    "Solid waste: informal collectors",
+    "Spatial proximity reason for disposal",
+    "Experience flooding",
+    "Experience malaria",
+    "Foul smell reported",
+    "Have planning permit",
+    "No permit - lack of awareness",
+    "Willing to relocate",
+    "Top barrier: proximity to work"
+  ),
+  Value = c(
+    paste0(round(sum(data_cleaned$hh_head_sex == "male", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$hh_head_sex)) * 100, 1), "%"),
+    paste0(round(mean(data_cleaned$hh_head_age, na.rm = TRUE), 1), " years"),
+    paste0(round(sum(data_cleaned$hh_head_education_level == "No formal education", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$hh_head_education_level)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$religion == "Islamic", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$religion)) * 100, 1), "%"),
+    paste0("GHS ", round(mean(data_cleaned$monthly_income, na.rm = TRUE), 0)),
+    paste0("GHS ", round(median(data_cleaned$monthly_income, na.rm = TRUE), 0)),
+    if(exists("gini_coef")) round(gini_coef(income_data$monthly_income), 3) else "N/A",
+    paste0(round(sum(data_cleaned$resident_status == "owner of the structure", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$resident_status)) * 100, 1), "%"),
+    paste0(round(median(data_cleaned$years_lived_here, na.rm = TRUE), 1), " years"),
+    paste0(round(sum(data_cleaned$reason_for_settling == "Proximity to workplace", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$reason_for_settling)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$liquid_waste_disposal_method == "In the river", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$liquid_waste_disposal_method)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$solid_waste_disposal_method == "informal waste collectors", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$solid_waste_disposal_method)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$liquid_waste_reason == "It is close to me/spatial proximity", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$liquid_waste_reason)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$challenge_flooding == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$challenge_flooding)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$challenge_malaria == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$challenge_malaria)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$challenge_foul_smell == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$challenge_foul_smell)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$has_planning_permit == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$has_planning_permit)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$no_permit_reason == "I have no idea i need a permit", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$no_permit_reason)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$willing_to_relocate == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$willing_to_relocate)) * 100, 1), "%"),
+    paste0(round(sum(data_cleaned$no_relocation_work_proximity == "Yes", na.rm = TRUE) / 
+                  sum(!is.na(data_cleaned$no_relocation_work_proximity)) * 100, 1), "%")
+  )
+)
+
+kk(final_summary, 
+   caption = "Table 64:  Summary - Key Study Findings", 
+   align = c("l", "l", "r"), font_size = 11)
+```
+
